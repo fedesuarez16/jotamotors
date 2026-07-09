@@ -1,0 +1,131 @@
+import { getSupabaseServer } from "@/lib/supabase";
+import type { Turno, TurnoEstado } from "@/lib/types";
+import { TurnosTable } from "./TurnosTable";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+interface PageProps {
+  searchParams: Promise<{ estado?: string }>;
+}
+
+function parseEstadoFilter(value: string | undefined): TurnoEstado | null {
+  if (value === "pendiente" || value === "confirmado" || value === "cancelado")
+    return value;
+  return null;
+}
+
+async function fetchTurnos(estadoFilter: TurnoEstado | null): Promise<Turno[]> {
+  const supabase = getSupabaseServer();
+  let query = supabase
+    .from("turnos")
+    .select("*, leads(name)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (estadoFilter) {
+    query = query.eq("estado", estadoFilter);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Supabase error: ${error.message}`);
+  return (data ?? []) as Turno[];
+}
+
+export default async function TurnosPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const estadoFilter = parseEstadoFilter(params.estado);
+
+  let turnos: Turno[] = [];
+  let errorMessage: string | null = null;
+
+  try {
+    turnos = await fetchTurnos(estadoFilter);
+  } catch (err) {
+    errorMessage = err instanceof Error ? err.message : "Unknown error";
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {errorMessage ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-medium text-red-800">
+            No se pudo cargar turnos
+          </p>
+          <p className="mt-1 font-mono text-xs text-red-600">{errorMessage}</p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {([null, "pendiente", "confirmado", "cancelado"] as const).map(
+              (e) => {
+                const active = estadoFilter === e;
+                const label =
+                  e === null
+                    ? "Todos"
+                    : e.charAt(0).toUpperCase() + e.slice(1);
+                const href = e ? `/turnos?estado=${e}` : "/turnos";
+                return (
+                  <a
+                    key={e ?? "all"}
+                    href={href}
+                    className={
+                      active
+                        ? "rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white"
+                        : "rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+                    }
+                  >
+                    {label}
+                  </a>
+                );
+              }
+            )}
+          </div>
+
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <StatCard label="Total" value={turnos.length} />
+            <StatCard
+              label="Pendientes"
+              value={turnos.filter((t) => t.estado === "pendiente").length}
+              accent="yellow"
+            />
+            <StatCard
+              label="Confirmados"
+              value={turnos.filter((t) => t.estado === "confirmado").length}
+              accent="green"
+            />
+          </div>
+
+          <TurnosTable turnos={turnos} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: number;
+  accent?: "yellow" | "green";
+}) {
+  const valueColor =
+    accent === "yellow"
+      ? "text-yellow-600"
+      : accent === "green"
+        ? "text-green-600"
+        : "text-zinc-900";
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white px-5 py-4">
+      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+        {label}
+      </p>
+      <p className={`mt-1 text-3xl font-semibold tabular-nums ${valueColor}`}>
+        {value}
+      </p>
+    </div>
+  );
+}

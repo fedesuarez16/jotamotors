@@ -1,0 +1,53 @@
+import { getSupabaseServer } from "@/lib/supabase";
+import type { EnvioMasivoHistorial } from "@/lib/types";
+import { EnviosTable } from "@/components/EnviosTable";
+import { EnvioScheduleCard } from "@/components/EnvioScheduleCard";
+import { getEnvioScheduleAction } from "@/app/actions";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+async function fetchHistorial(): Promise<EnvioMasivoHistorial[]> {
+  const supabase = getSupabaseServer();
+  const { data, error } = await supabase
+    .from("envio_masivo_historial")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error(`Supabase historial: ${error.message}`);
+  return (data ?? []) as EnvioMasivoHistorial[];
+}
+
+export default async function EnviosPage() {
+  let rows: EnvioMasivoHistorial[] = [];
+  let errorMessage: string | null = null;
+
+  try {
+    rows = await fetchHistorial();
+  } catch (err) {
+    errorMessage = err instanceof Error ? err.message : "Unknown error";
+  }
+
+  const schedule = await getEnvioScheduleAction();
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      {schedule.ok && <EnvioScheduleCard sendHour={schedule.sendHour} />}
+      {errorMessage ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-medium text-red-800">
+            No se pudo cargar el historial
+          </p>
+          <p className="mt-1 font-mono text-xs text-red-600">{errorMessage}</p>
+          <p className="mt-3 text-xs text-red-700">
+            Verificá que la tabla{" "}
+            <code className="font-mono">envio_masivo_historial</code> exista en
+            Supabase.
+          </p>
+        </div>
+      ) : (
+        <EnviosTable rows={rows} />
+      )}
+    </div>
+  );
+}
