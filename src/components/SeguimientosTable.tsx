@@ -1,9 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Lead } from "@/lib/types";
-import { ChatStateBadge } from "@/components/Badge";
+import Link from "next/link";
+import type { EnviadoRow, Lead, ProgramadoRow } from "@/lib/types";
+import type { WhatsAppTemplate } from "@/app/actions";
+import {
+  ChatStateBadge,
+  PersonalizadoBadge,
+  SeguimientoTipoBadge,
+} from "@/components/Badge";
 import { cancelarSeguimientoAction } from "@/app/actions/seguimientos";
+import { EditarMensajeButton } from "@/components/EditarMensajeButton";
 
 // ─── Date formatters ─────────────────────────────────────────────────────────
 
@@ -25,29 +32,6 @@ function formatRelative(iso: string | null): string {
   if (diffDays === 0) return "hoy";
   if (diffDays === 1) return "ayer";
   return `hace ${diffDays} días`;
-}
-
-// The cron fires at 13:00 UTC (≈ 10:00 America/Santiago).
-// Send date = date(last_seen_at) + 1 day at 13:00 UTC.
-function computeSendDate(lastSeenAt: string | null): string {
-  if (!lastSeenAt) return "—";
-  const d = new Date(lastSeenAt);
-  if (isNaN(d.getTime())) return "—";
-  const send = new Date(d);
-  send.setUTCDate(send.getUTCDate() + 1);
-  send.setUTCHours(13, 0, 0, 0);
-  const diffMs = send.getTime() - Date.now();
-  if (diffMs < 0) return "Fuera de ventana";
-  const diffH = diffMs / 3_600_000;
-  if (diffH < 24) return "Hoy a las 10:00";
-  if (diffH < 48) return "Mañana a las 10:00";
-  return (
-    send.toLocaleDateString("es-AR", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    }) + " 10:00"
-  );
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -75,6 +59,12 @@ function Td({
   );
 }
 
+function hasOverride(lead: Lead): boolean {
+  return Boolean(
+    lead.seguimiento_override_texto || lead.seguimiento_override_template
+  );
+}
+
 function LeadCell({ lead }: { lead: Lead }) {
   return (
     <div>
@@ -83,6 +73,33 @@ function LeadCell({ lead }: { lead: Lead }) {
       </p>
       <p className="font-mono text-xs text-zinc-400">{lead.phone}</p>
     </div>
+  );
+}
+
+// ─── Ver chat link ────────────────────────────────────────────────────────────
+
+function VerChatLink({ leadId }: { leadId: string }) {
+  return (
+    <Link
+      href={`/chats?lead=${leadId}`}
+      title="Ver conversación"
+      className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+      Ver chat
+    </Link>
   );
 }
 
@@ -199,10 +216,12 @@ function Section({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
-  programados: Lead[];
-  enviados: Lead[];
+  programados: ProgramadoRow[];
+  enviados: EnviadoRow[];
   programadosError: string | null;
   enviadosError: string | null;
+  templates: WhatsAppTemplate[];
+  templatesError: string | null;
 }
 
 export function SeguimientosTable({
@@ -210,6 +229,8 @@ export function SeguimientosTable({
   enviados,
   programadosError,
   enviadosError,
+  templates,
+  templatesError,
 }: Props) {
   return (
     <div className="space-y-8">
@@ -217,13 +238,14 @@ export function SeguimientosTable({
         title="Programados"
         count={programados.length}
         error={programadosError}
-        empty="No hay seguimientos pendientes."
+        empty="No hay seguimientos ni plantillas pendientes."
         defaultOpen
       >
         <table className="min-w-full divide-y divide-zinc-200">
           <thead className="bg-zinc-50">
             <tr>
               <Th>Lead</Th>
+              <Th>Tipo</Th>
               <Th>Estado</Th>
               <Th>Último contacto</Th>
               <Th>Cuándo se envía</Th>
@@ -231,22 +253,40 @@ export function SeguimientosTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200">
-            {programados.map((lead) => (
-              <tr key={lead.id} className="hover:bg-zinc-50/50">
+            {programados.map((row) => (
+              <tr
+                key={`${row.lead.id}-${row.tipo}`}
+                className="hover:bg-zinc-50/50"
+              >
                 <Td>
-                  <LeadCell lead={lead} />
+                  <LeadCell lead={row.lead} />
                 </Td>
                 <Td>
-                  <ChatStateBadge state={lead.estado_chat} />
+                  <SeguimientoTipoBadge tipo={row.tipo} />
+                </Td>
+                <Td>
+                  <ChatStateBadge state={row.lead.estado_chat} />
                 </Td>
                 <Td className="text-sm text-zinc-500">
-                  {formatRelative(lead.last_seen_at)}
+                  {formatRelative(row.lead.last_seen_at)}
                 </Td>
                 <Td className="text-sm text-zinc-500">
-                  {computeSendDate(lead.last_seen_at)}
+                  {row.estimatedSendLabel}
+                  {hasOverride(row.lead) && <PersonalizadoBadge />}
                 </Td>
                 <Td>
-                  <CancelButton phone={lead.phone} />
+                  <div className="flex items-center gap-1">
+                    {row.tipo === "seguimiento_24h" ? (
+                      <CancelButton phone={row.lead.phone} />
+                    ) : null}
+                    <EditarMensajeButton
+                      lead={row.lead}
+                      tipo={row.tipo}
+                      templates={templates}
+                      templatesError={templatesError}
+                    />
+                    <VerChatLink leadId={row.lead.id} />
+                  </div>
                 </Td>
               </tr>
             ))}
@@ -258,28 +298,39 @@ export function SeguimientosTable({
         title="Enviados"
         count={enviados.length}
         error={enviadosError}
-        empty="Todavía no se envió ningún seguimiento."
+        empty="Todavía no se envió ningún seguimiento ni plantilla."
         defaultOpen
       >
         <table className="min-w-full divide-y divide-zinc-200">
           <thead className="bg-zinc-50">
             <tr>
               <Th>Lead</Th>
+              <Th>Tipo</Th>
               <Th>Enviado el</Th>
               <Th>Último contacto</Th>
+              <Th>{""}</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200">
-            {enviados.map((lead) => (
-              <tr key={lead.id} className="hover:bg-zinc-50/50">
+            {enviados.map((row) => (
+              <tr
+                key={`${row.lead.id}-${row.tipo}`}
+                className="hover:bg-zinc-50/50"
+              >
                 <Td>
-                  <LeadCell lead={lead} />
+                  <LeadCell lead={row.lead} />
+                </Td>
+                <Td>
+                  <SeguimientoTipoBadge tipo={row.tipo} />
                 </Td>
                 <Td className="text-sm text-zinc-600">
-                  {formatAbsolute(lead.seguimiento_enviado_at)}
+                  {formatAbsolute(row.sentAt)}
                 </Td>
                 <Td className="text-sm text-zinc-500">
-                  {formatAbsolute(lead.last_seen_at)}
+                  {formatAbsolute(row.lead.last_seen_at)}
+                </Td>
+                <Td>
+                  <VerChatLink leadId={row.lead.id} />
                 </Td>
               </tr>
             ))}

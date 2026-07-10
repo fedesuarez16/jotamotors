@@ -25,6 +25,25 @@ export interface Lead {
   estado_chat: ChatState;
   seguimiento_enviado_at: string | null;
   seguimiento_cancelado_at: string | null;
+  plantilla1_enviado_at: string | null;
+  seguimiento_override_texto: string | null;
+  seguimiento_override_template: string | null;
+  seguimiento_override_template_lang: string | null;
+}
+
+export type SeguimientoTipo = "seguimiento_24h" | "plantilla";
+
+export interface EnviadoRow {
+  lead: Lead;
+  tipo: SeguimientoTipo;
+  sentAt: string;
+}
+
+export interface ProgramadoRow {
+  lead: Lead;
+  tipo: SeguimientoTipo;
+  estimatedSendLabel: string;
+  estimatedSendAt: string;
 }
 
 export type SourceFilter = LeadSource | "all";

@@ -1,4 +1,9 @@
-import type { ChatState, LeadSource, LeadStatus } from "@/lib/types";
+import type {
+  ChatState,
+  LeadSource,
+  LeadStatus,
+  SeguimientoTipo,
+} from "@/lib/types";
 
 const sourceStyles: Record<LeadSource, string> = {
   meta_ads:
@@ -73,6 +78,36 @@ export function ChatStateBadge({ state }: { state: ChatState }) {
       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${chatStateStyles[state]}`}
     >
       {chatStateLabel[state]}
+    </span>
+  );
+}
+
+const seguimientoTipoStyles: Record<SeguimientoTipo, string> = {
+  seguimiento_24h:
+    "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-900",
+  plantilla:
+    "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-900",
+};
+
+const seguimientoTipoLabel: Record<SeguimientoTipo, string> = {
+  seguimiento_24h: "Seguimiento 24h",
+  plantilla: "Plantilla",
+};
+
+export function SeguimientoTipoBadge({ tipo }: { tipo: SeguimientoTipo }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${seguimientoTipoStyles[tipo]}`}
+    >
+      {seguimientoTipoLabel[tipo]}
+    </span>
+  );
+}
+
+export function PersonalizadoBadge() {
+  return (
+    <span className="ml-2 inline-flex items-center rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300">
+      Personalizado
     </span>
   );
 }

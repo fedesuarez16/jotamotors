@@ -8,6 +8,7 @@ import { ChatStateToggle } from "./ChatStateToggle";
 import { DeleteLeadButton } from "./DeleteLeadButton";
 import { InlineAdSourceId } from "./InlineAdSourceId";
 import { InlineSelect } from "./InlineSelect";
+import { LeadSidebar } from "./LeadSidebar";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -44,8 +45,10 @@ const STATUS_OPTIONS = [
 
 export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sidebarLeadId, setSidebarLeadId] = useState<string | null>(null);
   const followupSet = useMemo(() => new Set(followupIds), [followupIds]);
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
+  const sidebarLead = leads.find((l) => l.id === sidebarLeadId) ?? null;
 
   useEffect(() => {
     const stillValid = new Set<string>();
@@ -132,13 +135,14 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
               return (
                 <tr
                   key={lead.id}
+                  onClick={() => setSidebarLeadId(lead.id)}
                   className={
                     isSelected
-                      ? "bg-blue-50/60 dark:bg-blue-950/20"
-                      : "hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50"
+                      ? "cursor-pointer bg-blue-50/60 dark:bg-blue-950/20"
+                      : "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50"
                   }
                 >
-                  <Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={isSelected}
@@ -171,7 +175,7 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                       {formatPhone(lead.phone)}
                     </span>
                   </Td>
-                  <Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <InlineSelect
                       leadId={lead.id}
                       field="source"
@@ -179,13 +183,13 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                       options={SOURCE_OPTIONS}
                     />
                   </Td>
-                  <Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <InlineAdSourceId
                       leadId={lead.id}
                       value={lead.ad_source_id}
                     />
                   </Td>
-                  <Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <InlineSelect
                       leadId={lead.id}
                       field="status"
@@ -193,7 +197,7 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                       options={STATUS_OPTIONS}
                     />
                   </Td>
-                  <Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <ChatStateToggle
                       phone={lead.phone}
                       currentState={lead.estado_chat}
@@ -208,7 +212,7 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                   <Td className="text-sm text-zinc-600 dark:text-zinc-400">
                     {formatDate(lead.last_seen_at)}
                   </Td>
-                  <Td className="text-right">
+                  <Td className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/chats?lead=${lead.id}`}
@@ -229,6 +233,14 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
           </tbody>
         </table>
       </div>
+
+      {sidebarLead && (
+        <LeadSidebar
+          lead={sidebarLead}
+          inFollowup={followupSet.has(sidebarLead.id)}
+          onClose={() => setSidebarLeadId(null)}
+        />
+      )}
     </div>
   );
 }
@@ -253,11 +265,18 @@ function Th({
 function Td({
   children,
   className = "",
+  onClick,
 }: {
   children: React.ReactNode;
   className?: string;
+  onClick?: (e: React.MouseEvent<HTMLTableCellElement>) => void;
 }) {
   return (
-    <td className={`whitespace-nowrap px-4 py-3 ${className}`}>{children}</td>
+    <td
+      className={`whitespace-nowrap px-4 py-3 ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </td>
   );
 }
