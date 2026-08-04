@@ -1,6 +1,7 @@
 import { getSupabaseServer } from "@/lib/supabase";
-import type { EnvioMasivoHistorial } from "@/lib/types";
+import type { EnvioMasivoHistorial, EnvioProgramado } from "@/lib/types";
 import { EnviosTable } from "@/components/EnviosTable";
+import { EnviosProgramadosTable } from "@/components/EnviosProgramadosTable";
 import { EnvioScheduleCard } from "@/components/EnvioScheduleCard";
 import { getEnvioScheduleAction } from "@/app/actions";
 
@@ -18,9 +19,23 @@ async function fetchHistorial(): Promise<EnvioMasivoHistorial[]> {
   return (data ?? []) as EnvioMasivoHistorial[];
 }
 
+async function fetchProgramados(): Promise<EnvioProgramado[]> {
+  const supabase = getSupabaseServer();
+  const { data, error } = await supabase
+    .from("envios_programados")
+    .select("*")
+    .in("status", ["pendiente", "procesando"])
+    .order("scheduled_at", { ascending: true })
+    .limit(100);
+  if (error) throw new Error(`Supabase programados: ${error.message}`);
+  return (data ?? []) as EnvioProgramado[];
+}
+
 export default async function EnviosPage() {
   let rows: EnvioMasivoHistorial[] = [];
+  let programados: EnvioProgramado[] = [];
   let errorMessage: string | null = null;
+  let programadosError: string | null = null;
 
   try {
     rows = await fetchHistorial();
@@ -28,11 +43,29 @@ export default async function EnviosPage() {
     errorMessage = err instanceof Error ? err.message : "Unknown error";
   }
 
+  try {
+    programados = await fetchProgramados();
+  } catch (err) {
+    programadosError = err instanceof Error ? err.message : "Unknown error";
+  }
+
   const schedule = await getEnvioScheduleAction();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       {schedule.ok && <EnvioScheduleCard sendHour={schedule.sendHour} />}
+      {programadosError ? (
+        <div className="mb-8 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-medium text-red-800">
+            No se pudieron cargar los envíos programados
+          </p>
+          <p className="mt-1 font-mono text-xs text-red-600">
+            {programadosError}
+          </p>
+        </div>
+      ) : (
+        <EnviosProgramadosTable rows={programados} />
+      )}
       {errorMessage ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-red-800">

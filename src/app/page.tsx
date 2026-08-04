@@ -15,8 +15,9 @@ interface PageProps {
 }
 
 function parseSourceFilter(value: string | undefined): SourceFilter {
-  if (value === "meta_ads" || value === "organic") return value;
-  return "all";
+  if (value === "meta_ads" || value === "organic" || value === "all")
+    return value;
+  return "meta_ads";
 }
 
 function parseChatFilter(value: string | undefined): ChatStateFilter {
@@ -49,7 +50,7 @@ async function fetchLeads(
   let query = supabase
     .from("leads")
     .select("*")
-    .order("last_seen_at", { ascending: false })
+    .order("first_seen_at", { ascending: false })
     .limit(200);
 
   if (source !== "all") {

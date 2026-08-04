@@ -1,6 +1,11 @@
 import { getSupabaseServer } from "@/lib/supabase";
 import { listApprovedTemplatesAction, type WhatsAppTemplate } from "@/app/actions";
-import type { EnviadoRow, Lead, ProgramadoRow } from "@/lib/types";
+import type {
+  EnviadoRow,
+  Lead,
+  NoEnviadoRow,
+  ProgramadoRow,
+} from "@/lib/types";
 import { SeguimientosTable } from "@/components/SeguimientosTable";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +18,10 @@ const SANTIAGO_TZ = "America/Santiago";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * DAY_MS;
 const DEFAULT_SEND_HOUR = 11;
+
+// Hasta cuántos días atrás reportamos un envío que no salió. Más allá de esto
+// son leads históricos anteriores a los workflows, no fallas accionables.
+const NO_ENVIADO_LOOKBACK_MS = SEVEN_DAYS_MS;
 
 // ─── Date helpers (America/Santiago) ───────────────────────────────────────
 
@@ -28,6 +37,23 @@ function santiagoHour(d: Date): number {
       hourCycle: "h23",
     })
   );
+}
+
+// "2026-07-28" -> Date del día siguiente a las 17:00 UTC, que es cuando corre
+// meta-followup-daily. Date.UTC normaliza el overflow de día/mes.
+function nextRunAfterSantiagoDay(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1, 17, 0, 0, 0));
+}
+
+function santiagoDateTimeLabel(d: Date): string {
+  return d.toLocaleString("es-AR", {
+    timeZone: SANTIAGO_TZ,
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // ─── Fetchers ───────────────────────────────────────────────────────────────
@@ -94,12 +120,15 @@ async function fetchPlantillaPendientes(): Promise<Lead[]> {
   return (data ?? []) as Lead[];
 }
 
+// Sin filtro de source: la cola manual (lead_followups) toma leads de
+// cualquier origen, así que filtrar por meta_ads escondía todo seguimiento
+// manual a un lead orgánico una vez enviado. Si el lead tiene la marca, el
+// envío salió — ese es el único criterio que importa acá.
 async function fetchSeguimientoEnviados(): Promise<Lead[]> {
   const supabase = getSupabaseServer();
   const { data, error } = await supabase
     .from("leads")
     .select(LEAD_COLUMNS)
-    .eq("source", "meta_ads")
     .not("seguimiento_enviado_at", "is", null)
     .order("seguimiento_enviado_at", { ascending: false })
     .limit(200);
@@ -112,7 +141,6 @@ async function fetchPlantillaEnviados(): Promise<Lead[]> {
   const { data, error } = await supabase
     .from("leads")
     .select(LEAD_COLUMNS)
-    .eq("source", "meta_ads")
     .not("plantilla1_enviado_at", "is", null)
     .order("plantilla1_enviado_at", { ascending: false })
     .limit(200);
@@ -153,15 +181,20 @@ function buildEnviadosRows(seguimiento: Lead[], plantilla: Lead[]): EnviadoRow[]
   return rows.slice(0, 200);
 }
 
+// Devuelve las dos caras del mismo cálculo: lo que todavía va a salir y lo que
+// debía haber salido y no salió. Antes esto último se descartaba con un
+// `continue` y el lead desaparecía de la pantalla sin dejar rastro.
 function buildProgramadosRows(
   seguimiento: Lead[],
   plantilla: Lead[],
   sendHour: number,
   now: Date
-): ProgramadoRow[] {
+): { programados: ProgramadoRow[]; noEnviados: NoEnviadoRow[] } {
   const todayStr = santiagoDateStr(now);
   const yesterdayStr = santiagoDateStr(new Date(now.getTime() - DAY_MS));
+  const lookbackFloor = now.getTime() - NO_ENVIADO_LOOKBACK_MS;
   const rows: ProgramadoRow[] = [];
+  const noEnviados: NoEnviadoRow[] = [];
 
   for (const lead of seguimiento) {
     const lastSeenDate = new Date(lead.last_seen_at);
@@ -176,8 +209,21 @@ function buildProgramadosRows(
     } else if (lastSeenStr === todayStr) {
       label = "Mañana a las 13:00";
       runDate = new Date(now.getTime() + DAY_MS);
+    } else if (lastSeenStr < yesterdayStr) {
+      // Al cron le tocaba tomarlo el día siguiente al último contacto y hoy
+      // sigue sin marca de envío: no salió y ya no va a salir.
+      const expectedAt = nextRunAfterSantiagoDay(lastSeenStr);
+      if (expectedAt.getTime() >= lookbackFloor) {
+        noEnviados.push({
+          lead,
+          tipo: "seguimiento_24h",
+          expectedAt: expectedAt.toISOString(),
+          expectedLabel: santiagoDateTimeLabel(expectedAt),
+        });
+      }
+      continue;
     } else {
-      // Fuera de la ventana hoy/ayer: el cron ya nunca lo va a tomar.
+      // last_seen_at en el futuro: dato inconsistente, no lo reportamos.
       continue;
     }
 
@@ -204,6 +250,21 @@ function buildProgramadosRows(
     const eligibleAt = new Date(
       new Date(lead.first_seen_at).getTime() + SEVEN_DAYS_MS
     );
+
+    // Pasó al menos una corrida completa del cron desde que quedó elegible y
+    // sigue sin marca: el envío falló o el workflow no corrió.
+    if (eligibleAt.getTime() <= now.getTime() - DAY_MS) {
+      if (eligibleAt.getTime() >= lookbackFloor) {
+        noEnviados.push({
+          lead,
+          tipo: "plantilla",
+          expectedAt: eligibleAt.toISOString(),
+          expectedLabel: santiagoDateTimeLabel(eligibleAt),
+        });
+      }
+      continue;
+    }
+
     let label: string;
     let sendAt: Date;
     if (eligibleAt.getTime() <= now.getTime()) {
@@ -234,7 +295,11 @@ function buildProgramadosRows(
       new Date(a.estimatedSendAt).getTime() -
       new Date(b.estimatedSendAt).getTime()
   );
-  return rows;
+  noEnviados.sort(
+    (a, b) =>
+      new Date(b.expectedAt).getTime() - new Date(a.expectedAt).getTime()
+  );
+  return { programados: rows, noEnviados };
 }
 
 // Filas de la cola manual: siempre se envían en la próxima corrida del cron
@@ -267,6 +332,7 @@ function buildManualProgramadosRows(
 
 export default async function SeguimientosPage() {
   let programados: ProgramadoRow[] = [];
+  let noEnviados: NoEnviadoRow[] = [];
   let enviados: EnviadoRow[] = [];
   let programadosError: string | null = null;
   let enviadosError: string | null = null;
@@ -303,13 +369,20 @@ export default async function SeguimientosPage() {
       (l) => !automaticIds.has(l.id)
     );
 
+    const built = buildProgramadosRows(
+      seguimientoPendientes,
+      plantillaPendientes,
+      sendHour,
+      now
+    );
+    // Un lead vencido que sigue en la cola manual no es una falla: el cron lo
+    // toma en la próxima corrida sin importar su last_seen_at.
+    const manualIds = new Set(manualFollowupIds);
+    noEnviados = built.noEnviados.filter(
+      (row) => !(row.tipo === "seguimiento_24h" && manualIds.has(row.lead.id))
+    );
     programados = [
-      ...buildProgramadosRows(
-        seguimientoPendientes,
-        plantillaPendientes,
-        sendHour,
-        now
-      ),
+      ...built.programados,
       ...buildManualProgramadosRows(manualFollowupLeads, now),
     ].sort(
       (a, b) =>
@@ -334,6 +407,7 @@ export default async function SeguimientosPage() {
     <div className="px-4 py-8 sm:px-6 lg:px-8">
       <SeguimientosTable
         programados={programados}
+        noEnviados={noEnviados}
         enviados={enviados}
         programadosError={programadosError}
         enviadosError={enviadosError}

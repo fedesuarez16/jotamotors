@@ -53,11 +53,13 @@ function Dropdown<T extends string>({
   value,
   paramKey,
   allValue,
+  clearOnAll = true,
 }: {
   options: { value: T; label: string }[];
   value: T;
   paramKey: string;
   allValue: T;
+  clearOnAll?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -94,7 +96,11 @@ function Dropdown<T extends string>({
               type="button"
               onClick={() => {
                 router.push(
-                  buildHref(params, paramKey, opt.value === allValue ? null : opt.value)
+                  buildHref(
+                    params,
+                    paramKey,
+                    opt.value === allValue && clearOnAll ? null : opt.value
+                  )
                 );
                 setOpen(false);
               }}
@@ -121,6 +127,7 @@ export function SourceFilterDropdown({ active }: { active: SourceFilter }) {
       value={active}
       paramKey="source"
       allValue="all"
+      clearOnAll={false}
     />
   );
 }

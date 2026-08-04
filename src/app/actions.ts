@@ -335,6 +335,64 @@ export async function bulkSendTemplateAction(
   return { ok: true, sent, failed: failures.length, failures };
 }
 
+export async function scheduleBulkSendAction(
+  ids: string[],
+  template: { name: string; language: string },
+  scheduledAtIso: string
+): Promise<ActionResult> {
+  if (ids.length === 0) return { ok: false, error: "Sin selección" };
+  if (!template?.name || !template?.language) {
+    return { ok: false, error: "Plantilla no seleccionada" };
+  }
+
+  const scheduledAt = new Date(scheduledAtIso);
+  if (Number.isNaN(scheduledAt.getTime())) {
+    return { ok: false, error: "Fecha inválida" };
+  }
+  if (scheduledAt.getTime() <= Date.now()) {
+    return { ok: false, error: "La fecha debe ser futura" };
+  }
+
+  const supabase = getSupabaseServer();
+  const { error } = await supabase.from("envios_programados").insert({
+    lead_ids: ids,
+    template_name: template.name,
+    template_lang: template.language,
+    scheduled_at: scheduledAt.toISOString(),
+  });
+
+  if (error) {
+    return { ok: false, error: `envios_programados: ${error.message}` };
+  }
+
+  revalidatePath("/envios");
+  return { ok: true };
+}
+
+export async function cancelarEnvioProgramadoAction(
+  id: string
+): Promise<ActionResult> {
+  if (!id) return { ok: false, error: "id requerido" };
+
+  const supabase = getSupabaseServer();
+  const { data, error } = await supabase
+    .from("envios_programados")
+    .update({ status: "cancelado" })
+    .eq("id", id)
+    .eq("status", "pendiente")
+    .select("id");
+
+  if (error) {
+    return { ok: false, error: `envios_programados: ${error.message}` };
+  }
+  if (!data || data.length === 0) {
+    return { ok: false, error: "El envío ya fue procesado o cancelado" };
+  }
+
+  revalidatePath("/envios");
+  return { ok: true };
+}
+
 export async function updateLeadFieldAction(
   id: string,
   field: "source" | "status" | "ad_source_id",

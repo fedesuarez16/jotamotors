@@ -2,12 +2,18 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import type { EnviadoRow, Lead, ProgramadoRow } from "@/lib/types";
+import type {
+  EnviadoRow,
+  Lead,
+  NoEnviadoRow,
+  ProgramadoRow,
+} from "@/lib/types";
 import type { WhatsAppTemplate } from "@/app/actions";
 import {
   ChatStateBadge,
   PersonalizadoBadge,
   SeguimientoTipoBadge,
+  SourceBadge,
 } from "@/components/Badge";
 import { cancelarSeguimientoAction } from "@/app/actions/seguimientos";
 import { EditarMensajeButton } from "@/components/EditarMensajeButton";
@@ -62,6 +68,48 @@ function Td({
 function hasOverride(lead: Lead): boolean {
   return Boolean(
     lead.seguimiento_override_texto || lead.seguimiento_override_template
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function AlertIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
   );
 }
 
@@ -151,6 +199,7 @@ function Section({
   count,
   error,
   empty,
+  tone = "default",
   defaultOpen = true,
   children,
 }: {
@@ -158,10 +207,15 @@ function Section({
   count: number;
   error: string | null;
   empty: string;
+  tone?: "default" | "alert";
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const countStyles =
+    tone === "alert" && count > 0
+      ? "bg-red-100 text-red-700"
+      : "bg-zinc-100 text-zinc-600";
 
   return (
     <section>
@@ -184,7 +238,9 @@ function Section({
           <polyline points="9 18 15 12 9 6" />
         </svg>
         <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
-        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 tabular-nums">
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${countStyles}`}
+        >
           {count}
         </span>
       </button>
@@ -217,6 +273,7 @@ function Section({
 
 interface Props {
   programados: ProgramadoRow[];
+  noEnviados: NoEnviadoRow[];
   enviados: EnviadoRow[];
   programadosError: string | null;
   enviadosError: string | null;
@@ -226,6 +283,7 @@ interface Props {
 
 export function SeguimientosTable({
   programados,
+  noEnviados,
   enviados,
   programadosError,
   enviadosError,
@@ -295,6 +353,57 @@ export function SeguimientosTable({
       </Section>
 
       <Section
+        title="No enviados"
+        count={noEnviados.length}
+        error={programadosError}
+        empty="Todo lo programado salió. Nada quedó sin enviar."
+        tone="alert"
+        defaultOpen
+      >
+        <table className="min-w-full divide-y divide-zinc-200">
+          <thead className="bg-zinc-50">
+            <tr>
+              <Th>Lead</Th>
+              <Th>Tipo</Th>
+              <Th>Estado</Th>
+              <Th>Debía salir</Th>
+              <Th>{""}</Th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-200">
+            {noEnviados.map((row) => (
+              <tr
+                key={`${row.lead.id}-${row.tipo}`}
+                className="hover:bg-red-50/40"
+              >
+                <Td>
+                  <LeadCell lead={row.lead} />
+                </Td>
+                <Td>
+                  <SeguimientoTipoBadge tipo={row.tipo} />
+                </Td>
+                <Td>
+                  <ChatStateBadge state={row.lead.estado_chat} />
+                </Td>
+                <Td>
+                  <span
+                    title="El cron no lo tomó o YCloud rechazó el envío. No quedó registro del error."
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-red-700"
+                  >
+                    <AlertIcon />
+                    {row.expectedLabel}
+                  </span>
+                </Td>
+                <Td>
+                  <VerChatLink leadId={row.lead.id} />
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+
+      <Section
         title="Enviados"
         count={enviados.length}
         error={enviadosError}
@@ -305,6 +414,7 @@ export function SeguimientosTable({
           <thead className="bg-zinc-50">
             <tr>
               <Th>Lead</Th>
+              <Th>Origen</Th>
               <Th>Tipo</Th>
               <Th>Enviado el</Th>
               <Th>Último contacto</Th>
@@ -321,10 +431,22 @@ export function SeguimientosTable({
                   <LeadCell lead={row.lead} />
                 </Td>
                 <Td>
+                  <SourceBadge source={row.lead.source} />
+                </Td>
+                <Td>
                   <SeguimientoTipoBadge tipo={row.tipo} />
                 </Td>
-                <Td className="text-sm text-zinc-600">
-                  {formatAbsolute(row.sentAt)}
+                <Td>
+                  <span
+                    title="Confirmado: YCloud aceptó el envío en esta fecha"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700"
+                  >
+                    <CheckIcon />
+                    {formatAbsolute(row.sentAt)}
+                  </span>
+                  <span className="ml-1 text-xs text-zinc-400">
+                    ({formatRelative(row.sentAt)})
+                  </span>
                 </Td>
                 <Td className="text-sm text-zinc-500">
                   {formatAbsolute(row.lead.last_seen_at)}

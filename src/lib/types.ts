@@ -46,6 +46,16 @@ export interface ProgramadoRow {
   estimatedSendAt: string;
 }
 
+// Seguimiento que debía haber salido y no tiene marca de envío: el cron no lo
+// tomó o YCloud rechazó el request. Sin la sección que las muestra, estas
+// filas desaparecían de la pantalla sin dejar rastro.
+export interface NoEnviadoRow {
+  lead: Lead;
+  tipo: SeguimientoTipo;
+  expectedAt: string;
+  expectedLabel: string;
+}
+
 export type SourceFilter = LeadSource | "all";
 
 export type ChatStateFilter = ChatState | "all";
@@ -92,4 +102,25 @@ export interface EnvioMasivoHistorial {
   sent: number;
   failed: number;
   failures: EnvioMasivoFailure[];
+}
+
+export type EnvioProgramadoStatus =
+  | "pendiente"
+  | "procesando"
+  | "enviado"
+  | "cancelado"
+  | "error";
+
+export interface EnvioProgramado {
+  id: string;
+  created_at: string;
+  scheduled_at: string;
+  template_name: string;
+  template_lang: string;
+  lead_ids: string[];
+  status: EnvioProgramadoStatus;
+  sent: number | null;
+  failed: number | null;
+  failures: EnvioMasivoFailure[] | null;
+  processed_at: string | null;
 }
