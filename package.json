@@ -11,6 +11,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
     "next": "^15.0.3",
+    "nodemailer": "^10.0.12",
+    "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^3.8.1"
@@ -18,6 +20,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4.0.0",

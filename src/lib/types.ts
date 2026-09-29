@@ -124,3 +124,58 @@ export interface EnvioProgramado {
   failures: EnvioMasivoFailure[] | null;
   processed_at: string | null;
 }
+
+export interface ClienteInput {
+  nombre?: string | null;
+  apellido?: string | null;
+  apellido_materno?: string | null;
+  email?: string | null;
+  email_2?: string | null;
+  telefono?: string | null;
+  etiquetas?: string | null;
+  estado_email?: string | null;
+  estado_sms?: string | null;
+  ultima_actividad?: string | null;
+  ultima_actividad_at?: string | null;
+  fuente?: string | null;
+  idioma?: string | null;
+  creado_en_origen?: string | null;
+  extra: Record<string, string>;
+}
+
+export interface Cliente extends ClienteInput {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CotizacionItem {
+  descripcion: string;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+export interface CotizacionInput {
+  cliente_id?: string | null;
+  cliente_nombre: string;
+  cliente_email: string;
+  cliente_telefono?: string | null;
+  vehiculo?: string | null;
+  patente?: string | null;
+  items: CotizacionItem[];
+  validez_dias?: number;
+  observaciones?: string | null;
+}
+
+export type CotizacionEstado = "borrador" | "enviada" | "error";
+
+export interface Cotizacion extends CotizacionInput {
+  id: string;
+  numero: number;
+  total: number;
+  validez_dias: number;
+  estado: CotizacionEstado;
+  enviada_at: string | null;
+  error: string | null;
+  created_at: string;
+}

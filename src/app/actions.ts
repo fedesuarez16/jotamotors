@@ -154,6 +154,53 @@ export type ListTemplatesResult =
   | { ok: true; templates: WhatsAppTemplate[] }
   | { ok: false; error: string };
 
+type YCloudTemplateComponent = {
+  type: string;
+  format?: string;
+  text?: string;
+  example?: { header_url?: string[] };
+};
+
+type YCloudTemplate = {
+  name: string;
+  language: string;
+  status: string;
+  components?: YCloudTemplateComponent[];
+};
+
+async function fetchYCloudTemplates(apiKey: string): Promise<YCloudTemplate[]> {
+  const res = await fetch(
+    "https://api.ycloud.com/v2/whatsapp/templates?limit=100",
+    { headers: { "X-API-Key": apiKey }, cache: "no-store" }
+  );
+  if (!res.ok) throw new Error(`YCloud templates: HTTP ${res.status}`);
+  const data = (await res.json()) as { items?: YCloudTemplate[] };
+  return data.items ?? [];
+}
+
+type TemplateComponent = {
+  type: "header";
+  parameters: Record<string, unknown>[];
+};
+
+// Un header IMAGE/VIDEO/DOCUMENT exige mandar el media en CADA envío: la
+// imagen que se subió al crear la plantilla es solo el ejemplo para la
+// aprobación de Meta, no viaja sola. Sin esto YCloud acepta el request con
+// HTTP 200 y Meta lo rechaza después con 132012 ("Format mismatch, expected
+// IMAGE, received UNKNOWN"), así que el mensaje se cobra y nunca llega.
+function buildTemplateComponents(
+  tpl: YCloudTemplate
+): TemplateComponent[] | undefined {
+  const header = tpl.components?.find((c) => c.type === "HEADER");
+  if (!header?.format || header.format === "TEXT") return undefined;
+
+  const link = header.example?.header_url?.[0];
+  if (!link) return undefined;
+
+  const kind = header.format.toLowerCase();
+  return [{ type: "header", parameters: [{ type: kind, [kind]: { link } }] }];
+}
+
 export async function listApprovedTemplatesAction(): Promise<ListTemplatesResult> {
   const apiKey = process.env.YCLOUD_API_KEY;
   if (!apiKey) {
@@ -163,31 +210,22 @@ export async function listApprovedTemplatesAction(): Promise<ListTemplatesResult
     };
   }
 
-  const res = await fetch(
-    "https://api.ycloud.com/v2/whatsapp/templates?limit=100",
-    { headers: { "X-API-Key": apiKey }, cache: "no-store" }
-  );
-
-  if (!res.ok) {
-    return { ok: false, error: `YCloud templates: HTTP ${res.status}` };
+  let items: YCloudTemplate[];
+  try {
+    items = await fetchYCloudTemplates(apiKey);
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "YCloud templates falló",
+    };
   }
 
-  const data = (await res.json()) as {
-    items?: {
-      name: string;
-      language: string;
-      status: string;
-      components?: { type: string; text?: string }[];
-    }[];
-  };
-
-  const templates = (data.items ?? [])
+  const templates = items
     .filter((t) => t.status === "APPROVED")
     .map((t) => ({
       name: t.name,
       language: t.language,
-      bodyText:
-        t.components?.find((c) => c.type === "BODY")?.text ?? "",
+      bodyText: t.components?.find((c) => c.type === "BODY")?.text ?? "",
     }));
 
   return { ok: true, templates };
@@ -248,6 +286,40 @@ export async function bulkSendTemplateAction(
     };
   }
 
+  // Resolvemos la definición en YCloud (no confiamos en lo que mandó el
+  // cliente) para saber si la plantilla lleva header multimedia.
+  let definition: YCloudTemplate | undefined;
+  try {
+    const items = await fetchYCloudTemplates(apiKey);
+    definition = items.find(
+      (t) => t.name === template.name && t.language === template.language
+    );
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "YCloud templates falló",
+    };
+  }
+
+  if (!definition) {
+    return {
+      ok: false,
+      error: `La plantilla ${template.name} (${template.language}) no existe en YCloud`,
+    };
+  }
+
+  const components = buildTemplateComponents(definition);
+  const header = definition.components?.find((c) => c.type === "HEADER");
+
+  // Cortamos acá en vez de quemar plata: sin el media, Meta rechaza los N
+  // mensajes uno por uno y YCloud igual los cobra.
+  if (header?.format && header.format !== "TEXT" && !components) {
+    return {
+      ok: false,
+      error: `La plantilla ${template.name} tiene un header ${header.format} pero YCloud no expone la URL de ejemplo; no se puede enviar sin el archivo.`,
+    };
+  }
+
   const supabase = getSupabaseServer();
   const { data: leads, error: fetchError } = await supabase
     .from("leads")
@@ -277,6 +349,7 @@ export async function bulkSendTemplateAction(
           template: {
             name: template.name,
             language: { code: template.language },
+            ...(components ? { components } : {}),
           },
         }),
       });
