@@ -87,11 +87,11 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
 
   if (leads.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-12 text-center dark:border-zinc-700 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          No hay leads para mostrar todavía.
+      <div className="empty">
+        <p className="font-display text-base font-semibold text-ink-900">
+          No hay leads para mostrar
         </p>
-        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+        <p className="text-sm text-zinc-500">
           Cuando llegue el primer mensaje al webhook de WhatsApp, aparece acá.
         </p>
       </div>
@@ -102,9 +102,9 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
     <div className="flex flex-col gap-3">
       <BulkActionsBar selectedIds={Array.from(selected)} onDone={clear} />
 
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-          <thead className="bg-zinc-50 dark:bg-zinc-900">
+      <div className="card overflow-x-auto">
+        <table className="table">
+          <thead>
             <tr>
               <Th className="w-10">
                 <input
@@ -113,7 +113,7 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                   checked={allChecked}
                   onChange={toggleAll}
                   aria-label="Seleccionar todos"
-                  className="h-4 w-4 cursor-pointer rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-brand-600"
                 />
               </Th>
               <Th>Nombre</Th>
@@ -128,7 +128,7 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
               <Th className="text-right">Acciones</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+          <tbody>
             {leads.map((lead) => {
               const isSelected = selected.has(lead.id);
               const inFollowup = followupSet.has(lead.id);
@@ -138,8 +138,8 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                   onClick={() => setSidebarLeadId(lead.id)}
                   className={
                     isSelected
-                      ? "cursor-pointer bg-blue-50/60 dark:bg-blue-950/20"
-                      : "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50"
+                      ? "cursor-pointer bg-brand-50/70 hover:bg-brand-50"
+                      : "cursor-pointer"
                   }
                 >
                   <Td onClick={(e) => e.stopPropagation()}>
@@ -148,22 +148,22 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                       checked={isSelected}
                       onChange={() => toggleOne(lead.id)}
                       aria-label={`Seleccionar ${lead.name ?? formatPhone(lead.phone)}`}
-                      className="h-4 w-4 cursor-pointer rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-brand-600"
                     />
                   </Td>
                   <Td>
                     <div className="flex items-center gap-1.5">
                       {lead.name ? (
-                        <span className="font-medium">{lead.name}</span>
+                        <span className="font-medium text-ink-900">{lead.name}</span>
                       ) : (
-                        <span className="text-zinc-300 dark:text-zinc-600">
+                        <span className="text-zinc-300">
                           —
                         </span>
                       )}
                       {inFollowup && (
                         <span
                           title="En seguimiento"
-                          className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                          className="rounded-full bg-ink-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white"
                         >
                           Seg.
                         </span>
@@ -171,7 +171,7 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                     </div>
                   </Td>
                   <Td>
-                    <span className="font-mono text-sm">
+                    <span className="font-mono text-[13px] text-zinc-600">
                       {formatPhone(lead.phone)}
                     </span>
                   </Td>
@@ -203,20 +203,20 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
                       currentState={lead.estado_chat}
                     />
                   </Td>
-                  <Td className="text-right tabular-nums">
+                  <Td className="text-right font-medium tabular-nums text-ink-900">
                     {lead.message_count}
                   </Td>
-                  <Td className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <Td className="text-xs text-zinc-500">
                     {formatDate(lead.first_seen_at)}
                   </Td>
-                  <Td className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <Td className="text-xs text-zinc-500">
                     {formatDate(lead.last_seen_at)}
                   </Td>
                   <Td className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/chats?lead=${lead.id}`}
-                        className="rounded-md border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:border-blue-900/50 dark:bg-zinc-950 dark:text-blue-400 dark:hover:bg-blue-950/30 dark:hover:text-blue-300"
+                        className="btn btn-secondary btn-sm"
                         aria-label={`Ver chat de ${lead.name ?? formatPhone(lead.phone)}`}
                       >
                         Ver chat
@@ -255,7 +255,7 @@ function Th({
   return (
     <th
       scope="col"
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 ${className}`}
+      className={className}
     >
       {children}
     </th>
@@ -273,7 +273,7 @@ function Td({
 }) {
   return (
     <td
-      className={`whitespace-nowrap px-4 py-3 ${className}`}
+      className={`whitespace-nowrap ${className}`}
       onClick={onClick}
     >
       {children}

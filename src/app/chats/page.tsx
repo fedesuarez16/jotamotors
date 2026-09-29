@@ -47,8 +47,8 @@ export default async function ChatsPage({ searchParams }: PageProps) {
 
   if (errorMessage) {
     return (
-      <div className="p-8">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+      <div className="page">
+        <div className="alert-error">
           <p className="text-sm font-medium text-red-800">
             No se pudo cargar conversaciones
           </p>
@@ -78,7 +78,7 @@ export default async function ChatsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 3.5rem)" }}>
+    <div className="flex" style={{ height: "calc(100vh - 4rem)" }}>
       <ChatList leads={leads} activeId={activeId} />
       <ChatThread lead={activeLead} messages={messages} />
     </div>

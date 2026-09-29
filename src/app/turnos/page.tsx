@@ -1,6 +1,7 @@
 import { getSupabaseServer } from "@/lib/supabase";
 import type { Turno, TurnoEstado } from "@/lib/types";
 import { TurnosTable } from "./TurnosTable";
+import { StatCard } from "@/components/ui/StatCard";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -46,9 +47,9 @@ export default async function TurnosPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="page">
       {errorMessage ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="alert-error">
           <p className="text-sm font-medium text-red-800">
             No se pudo cargar turnos
           </p>
@@ -71,8 +72,8 @@ export default async function TurnosPage({ searchParams }: PageProps) {
                     href={href}
                     className={
                       active
-                        ? "rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white"
-                        : "rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+                        ? "chip chip-active"
+                        : "chip"
                     }
                   >
                     {label}
@@ -87,45 +88,18 @@ export default async function TurnosPage({ searchParams }: PageProps) {
             <StatCard
               label="Pendientes"
               value={turnos.filter((t) => t.estado === "pendiente").length}
-              accent="yellow"
+              accent="brand"
             />
             <StatCard
               label="Confirmados"
               value={turnos.filter((t) => t.estado === "confirmado").length}
-              accent="green"
+              accent="emerald"
             />
           </div>
 
           <TurnosTable turnos={turnos} />
         </>
       )}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: number;
-  accent?: "yellow" | "green";
-}) {
-  const valueColor =
-    accent === "yellow"
-      ? "text-yellow-600"
-      : accent === "green"
-        ? "text-green-600"
-        : "text-zinc-900";
-  return (
-    <div className="rounded-lg border border-zinc-200 bg-white px-5 py-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-        {label}
-      </p>
-      <p className={`mt-1 text-3xl font-semibold tabular-nums ${valueColor}`}>
-        {value}
-      </p>
     </div>
   );
 }

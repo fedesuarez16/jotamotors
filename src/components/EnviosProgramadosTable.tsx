@@ -27,7 +27,7 @@ function CancelarButton({ id }: { id: string }) {
           if (!result.ok) window.alert(`Error: ${result.error}`);
         });
       }}
-      className="rounded px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+      className="btn btn-sm text-zinc-500 hover:bg-red-50 hover:text-red-600"
     >
       {isPending ? "…" : "Cancelar"}
     </button>
@@ -37,11 +37,11 @@ function CancelarButton({ id }: { id: string }) {
 export function EnviosProgramadosTable({ rows }: { rows: EnvioProgramado[] }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold text-zinc-900">
+      <h2 className="section-title mb-3">
         Envíos programados
       </h2>
       {rows.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-8 text-center">
+        <div className="empty">
           <p className="text-sm text-zinc-500">
             No hay envíos programados pendientes.
           </p>
@@ -51,9 +51,9 @@ export function EnviosProgramadosTable({ rows }: { rows: EnvioProgramado[] }) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-          <table className="min-w-full divide-y divide-zinc-200">
-            <thead className="bg-zinc-50">
+        <div className="card overflow-x-auto">
+          <table className="table">
+            <thead>
               <tr>
                 <Th>Se envía el</Th>
                 <Th>Template</Th>
@@ -62,14 +62,14 @@ export function EnviosProgramadosTable({ rows }: { rows: EnvioProgramado[] }) {
                 <Th>{""}</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200">
+            <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="hover:bg-zinc-50/50">
+                <tr key={row.id}>
                   <Td className="text-sm text-zinc-600">
                     {formatDate(row.scheduled_at)}
                   </Td>
                   <Td>
-                    <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-zinc-800">
+                    <code className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-ink-900 ring-1 ring-inset ring-zinc-200">
                       {row.template_name}
                     </code>
                   </Td>
@@ -78,10 +78,10 @@ export function EnviosProgramadosTable({ rows }: { rows: EnvioProgramado[] }) {
                   </Td>
                   <Td>
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      className={`badge ${
                         row.status === "pendiente"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-brand-50 text-brand-700 ring-brand-200"
+                          : "bg-sky-50 text-sky-700 ring-sky-200"
                       }`}
                     >
                       {row.status}
@@ -114,7 +114,7 @@ function Th({
   return (
     <th
       scope="col"
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 ${className}`}
+      className={`${className}`}
     >
       {children}
     </th>
@@ -129,6 +129,6 @@ function Td({
   className?: string;
 }) {
   return (
-    <td className={`whitespace-nowrap px-4 py-3 ${className}`}>{children}</td>
+    <td className={`whitespace-nowrap ${className}`}>{children}</td>
   );
 }

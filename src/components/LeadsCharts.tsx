@@ -15,8 +15,8 @@ import {
 } from "recharts";
 import type { DayStat, SourceStat, StatusStat } from "@/app/graficos/page";
 
-const SOURCE_COLORS = ["#3b82f6", "#10b981"];
-const STATUS_COLOR = "#6366f1";
+const SOURCE_COLORS = ["#1d4fd7", "#1fb3e6"];
+const STATUS_COLOR = "#16181d";
 
 interface Props {
   dayStats: DayStat[];
@@ -32,8 +32,8 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+    <div className="card p-5">
+      <h2 className="section-title mb-4">
         {title}
       </h2>
       {children}
@@ -54,7 +54,7 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                className="stroke-zinc-200 dark:stroke-zinc-800"
+                className="stroke-zinc-200"
                 vertical={false}
               />
               <XAxis
@@ -88,14 +88,14 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
                 dataKey="meta_ads"
                 name="Meta Ads"
                 stackId="a"
-                fill="#3b82f6"
+                fill={SOURCE_COLORS[0]}
                 radius={[0, 0, 0, 0]}
               />
               <Bar
                 dataKey="organic"
                 name="Orgánicos"
                 stackId="a"
-                fill="#10b981"
+                fill={SOURCE_COLORS[1]}
                 radius={[3, 3, 0, 0]}
               />
             </BarChart>
@@ -105,7 +105,7 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
 
       {/* Leads por fuente */}
       <ChartCard title="Fuente de leads">
-        <div className="flex items-center justify-center">
+        <div className="w-full">
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
@@ -137,7 +137,7 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
         </div>
         <div className="mt-2 flex justify-center gap-4">
           {sourceStats.map((s, i) => (
-            <div key={s.name} className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <div key={s.name} className="flex items-center gap-1.5 text-xs text-zinc-600">
               <span
                 className="inline-block h-2.5 w-2.5 rounded-sm"
                 style={{ backgroundColor: SOURCE_COLORS[i] }}
@@ -158,7 +158,7 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              className="stroke-zinc-200 dark:stroke-zinc-800"
+              className="stroke-zinc-200"
               horizontal={false}
             />
             <XAxis

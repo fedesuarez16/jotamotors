@@ -6,6 +6,7 @@ import type {
   NoEnviadoRow,
   ProgramadoRow,
 } from "@/lib/types";
+import { StatCard } from "@/components/ui/StatCard";
 import { SeguimientosTable } from "@/components/SeguimientosTable";
 
 export const dynamic = "force-dynamic";
@@ -404,7 +405,12 @@ export default async function SeguimientosPage() {
   }
 
   return (
-    <div className="px-4 py-8 sm:px-6 lg:px-8">
+    <div className="page">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Programados" value={programados.length} accent="brand" />
+        <StatCard label="No enviados" value={noEnviados.length} accent="red" />
+        <StatCard label="Enviados" value={enviados.length} accent="emerald" />
+      </div>
       <SeguimientosTable
         programados={programados}
         noEnviados={noEnviados}

@@ -83,13 +83,13 @@ function Dropdown<T extends string>({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+        className={`btn ${value === allValue ? "btn-secondary" : "border border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"}`}
       >
         {current.label}
         <ChevronDown />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1 min-w-[150px] rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="absolute right-0 top-full z-30 mt-1.5 min-w-[170px] overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-xl">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -104,13 +104,13 @@ function Dropdown<T extends string>({
                 );
                 setOpen(false);
               }}
-              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors ${
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
                 opt.value === value
-                  ? "font-medium text-zinc-900 dark:text-zinc-100"
-                  : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                  ? "font-medium text-ink-900"
+                  : "text-zinc-600 hover:bg-zinc-50"
               }`}
             >
-              <span className="w-3 text-xs">{opt.value === value ? "✓" : ""}</span>
+              <span className="w-3 text-xs text-brand-600">{opt.value === value ? "✓" : ""}</span>
               {opt.label}
             </button>
           ))}
@@ -169,6 +169,22 @@ export function SearchBar() {
   return (
     <form onSubmit={onSubmit} className="flex flex-1 items-center gap-2" role="search">
       <div className="relative flex-1">
+        <svg
+          aria-hidden
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input
           key={currentQ}
           type="search"
@@ -176,14 +192,14 @@ export function SearchBar() {
           defaultValue={currentQ}
           placeholder="Buscar por nombre o teléfono..."
           aria-label="Buscar lead"
-          className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 pr-8 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600"
+          className="input pl-9 pr-8"
         />
         {currentQ && (
           <button
             type="button"
             onClick={onClear}
             aria-label="Limpiar búsqueda"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-1.5 text-xs text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-1.5 text-xs text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
           >
             ×
           </button>
@@ -191,7 +207,7 @@ export function SearchBar() {
       </div>
       <button
         type="submit"
-        className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+        className="btn btn-primary"
       >
         Buscar
       </button>

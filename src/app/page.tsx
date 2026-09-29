@@ -95,16 +95,16 @@ export default async function HomePage({ searchParams }: PageProps) {
   const totalLeads = leads.length;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="page">
       {errorMessage ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/30">
-          <p className="text-sm font-medium text-red-800 dark:text-red-300">
+        <div className="alert-error">
+          <p className="text-sm font-medium text-red-800">
             No se pudo cargar leads
           </p>
-          <p className="mt-1 font-mono text-xs text-red-600 dark:text-red-400">
+          <p className="mt-1 font-mono text-xs text-red-600">
             {errorMessage}
           </p>
-          <p className="mt-3 text-xs text-red-700 dark:text-red-300">
+          <p className="mt-3 text-xs text-red-700">
             Verificá que <code>SUPABASE_URL</code> y{" "}
             <code>SUPABASE_SERVICE_ROLE_KEY</code> estén configurados en{" "}
             <code>.env.local</code> y que las tablas <code>leads</code> y{" "}
@@ -113,14 +113,16 @@ export default async function HomePage({ searchParams }: PageProps) {
         </div>
       ) : (
         <>
-          <div className="mb-3 flex items-center gap-2">
+          <div className="card mb-4 flex flex-wrap items-center gap-2 p-3">
             <SearchBar />
             <SourceFilterDropdown active={sourceFilter} />
             <ChatStateFilterDropdown active={chatFilter} />
           </div>
-          <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
-            Mostrando {totalLeads} {totalLeads === 1 ? "lead" : "leads"}
+          <p className="mb-3 px-1 text-xs text-zinc-500">
+            <span className="font-semibold text-ink-900">{totalLeads}</span>{" "}
+            {totalLeads === 1 ? "lead" : "leads"}
             {search ? ` para "${search}"` : ""}
+            <span className="text-zinc-400"> · Tocá una fila para ver el detalle</span>
           </p>
           <LeadsTable leads={leads} followupIds={followupIds} />
         </>

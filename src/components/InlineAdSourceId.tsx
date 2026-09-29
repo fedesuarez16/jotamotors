@@ -51,7 +51,7 @@ export function InlineAdSourceId({ leadId, value }: InlineAdSourceIdProps) {
         onKeyDown={handleKeyDown}
         disabled={isPending}
         placeholder="Ad ID…"
-        className="w-36 rounded border border-blue-400 bg-white px-2 py-0.5 font-mono text-xs text-zinc-700 outline-none ring-1 ring-blue-400 transition-opacity disabled:opacity-50 dark:bg-zinc-900 dark:text-zinc-300"
+        className="w-36 rounded-lg border border-brand-500 bg-white px-2 py-1 font-mono text-xs text-zinc-700 outline-none ring-2 ring-brand-500/20 transition-opacity disabled:opacity-50"
       />
     );
   }
@@ -61,14 +61,14 @@ export function InlineAdSourceId({ leadId, value }: InlineAdSourceIdProps) {
       type="button"
       onClick={startEdit}
       title="Clic para editar"
-      className="group flex items-center gap-1 rounded px-1 py-0.5 text-left transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      className="group flex items-center gap-1 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-zinc-100"
     >
       {value ? (
-        <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400">
+        <span className="font-mono text-xs text-zinc-600">
           {value}
         </span>
       ) : (
-        <span className="text-zinc-300 dark:text-zinc-600">—</span>
+        <span className="text-zinc-300">—</span>
       )}
       <span className="text-[10px] opacity-0 transition-opacity group-hover:opacity-50">
         ✎

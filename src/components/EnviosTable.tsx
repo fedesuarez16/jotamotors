@@ -13,7 +13,7 @@ function formatDate(iso: string): string {
 export function EnviosTable({ rows }: { rows: EnvioMasivoHistorial[] }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-12 text-center">
+      <div className="empty">
         <p className="text-sm text-zinc-500">No hay envíos registrados todavía.</p>
         <p className="mt-1 text-xs text-zinc-400">
           Cuando realices un envío masivo desde la tabla de leads, aparece acá.
@@ -23,9 +23,9 @@ export function EnviosTable({ rows }: { rows: EnvioMasivoHistorial[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-      <table className="min-w-full divide-y divide-zinc-200">
-        <thead className="bg-zinc-50">
+    <div className="card overflow-x-auto">
+      <table className="table">
+        <thead>
           <tr>
             <Th>Fecha</Th>
             <Th>Template</Th>
@@ -35,18 +35,18 @@ export function EnviosTable({ rows }: { rows: EnvioMasivoHistorial[] }) {
             <Th>Detalle</Th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-200">
+        <tbody>
           {rows.map((row) => (
-            <tr key={row.id} className="hover:bg-zinc-50/50">
+            <tr key={row.id}>
               <Td className="text-sm text-zinc-600">{formatDate(row.created_at)}</Td>
               <Td>
-                <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-zinc-800">
+                <code className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-ink-900 ring-1 ring-inset ring-zinc-200">
                   {row.template_name}
                 </code>
               </Td>
               <Td className="text-right tabular-nums">{row.total_targets}</Td>
               <Td className="text-right tabular-nums">
-                <span className="font-medium text-green-700">{row.sent}</span>
+                <span className="font-medium text-emerald-700">{row.sent}</span>
               </Td>
               <Td className="text-right tabular-nums">
                 {row.failed > 0 ? (
@@ -93,7 +93,7 @@ function Th({
   return (
     <th
       scope="col"
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 ${className}`}
+      className={`${className}`}
     >
       {children}
     </th>
@@ -108,6 +108,6 @@ function Td({
   className?: string;
 }) {
   return (
-    <td className={`whitespace-nowrap px-4 py-3 ${className}`}>{children}</td>
+    <td className={`whitespace-nowrap ${className}`}>{children}</td>
   );
 }

@@ -52,10 +52,10 @@ export default async function EnviosPage() {
   const schedule = await getEnvioScheduleAction();
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="page">
       {schedule.ok && <EnvioScheduleCard sendHour={schedule.sendHour} />}
       {programadosError ? (
-        <div className="mb-8 rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="mb-8 alert-error">
           <p className="text-sm font-medium text-red-800">
             No se pudieron cargar los envíos programados
           </p>
@@ -67,7 +67,7 @@ export default async function EnviosPage() {
         <EnviosProgramadosTable rows={programados} />
       )}
       {errorMessage ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="alert-error">
           <p className="text-sm font-medium text-red-800">
             No se pudo cargar el historial
           </p>
@@ -79,7 +79,10 @@ export default async function EnviosPage() {
           </p>
         </div>
       ) : (
-        <EnviosTable rows={rows} />
+        <section>
+          <h2 className="section-title mb-3">Historial de envíos</h2>
+          <EnviosTable rows={rows} />
+        </section>
       )}
     </div>
   );

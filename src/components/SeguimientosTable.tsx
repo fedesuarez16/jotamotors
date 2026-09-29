@@ -46,7 +46,6 @@ function Th({ children }: { children: React.ReactNode }) {
   return (
     <th
       scope="col"
-      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500"
     >
       {children}
     </th>
@@ -61,7 +60,7 @@ function Td({
   className?: string;
 }) {
   return (
-    <td className={`whitespace-nowrap px-4 py-3 ${className}`}>{children}</td>
+    <td className={`whitespace-nowrap ${className}`}>{children}</td>
   );
 }
 
@@ -116,7 +115,7 @@ function AlertIcon() {
 function LeadCell({ lead }: { lead: Lead }) {
   return (
     <div>
-      <p className="text-sm font-medium text-zinc-800">
+      <p className="text-sm font-medium text-ink-900">
         {lead.name ?? <span className="text-zinc-400">Sin nombre</span>}
       </p>
       <p className="font-mono text-xs text-zinc-400">{lead.phone}</p>
@@ -131,7 +130,7 @@ function VerChatLink({ leadId }: { leadId: string }) {
     <Link
       href={`/chats?lead=${leadId}`}
       title="Ver conversación"
-      className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+      className="btn btn-sm text-zinc-500 hover:bg-zinc-100 hover:text-ink-900"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -164,7 +163,7 @@ function CancelButton({ phone }: { phone: string }) {
         })
       }
       title="No enviar seguimiento"
-      className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+      className="btn btn-sm text-zinc-500 hover:bg-red-50 hover:text-red-600"
     >
       {isPending ? (
         "…"
@@ -214,8 +213,8 @@ function Section({
   const [open, setOpen] = useState(defaultOpen);
   const countStyles =
     tone === "alert" && count > 0
-      ? "bg-red-100 text-red-700"
-      : "bg-zinc-100 text-zinc-600";
+      ? "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200"
+      : "bg-zinc-100 text-zinc-600 ring-1 ring-inset ring-zinc-200";
 
   return (
     <section>
@@ -237,9 +236,9 @@ function Section({
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+        <h2 className="section-title">{title}</h2>
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${countStyles}`}
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${countStyles}`}
         >
           {count}
         </span>
@@ -248,18 +247,18 @@ function Section({
       {open && (
         <>
           {error ? (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="alert-error">
               <p className="text-sm font-medium text-red-800">
                 No se pudo cargar esta sección
               </p>
               <p className="mt-1 font-mono text-xs text-red-600">{error}</p>
             </div>
           ) : count === 0 ? (
-            <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-12 text-center">
+            <div className="empty">
               <p className="text-sm text-zinc-500">{empty}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+            <div className="card overflow-x-auto">
               {children}
             </div>
           )}
@@ -299,8 +298,8 @@ export function SeguimientosTable({
         empty="No hay seguimientos ni plantillas pendientes."
         defaultOpen
       >
-        <table className="min-w-full divide-y divide-zinc-200">
-          <thead className="bg-zinc-50">
+        <table className="table">
+          <thead>
             <tr>
               <Th>Lead</Th>
               <Th>Tipo</Th>
@@ -310,11 +309,11 @@ export function SeguimientosTable({
               <Th>{""}</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200">
+          <tbody>
             {programados.map((row) => (
               <tr
                 key={`${row.lead.id}-${row.tipo}`}
-                className="hover:bg-zinc-50/50"
+               
               >
                 <Td>
                   <LeadCell lead={row.lead} />
@@ -360,8 +359,8 @@ export function SeguimientosTable({
         tone="alert"
         defaultOpen
       >
-        <table className="min-w-full divide-y divide-zinc-200">
-          <thead className="bg-zinc-50">
+        <table className="table">
+          <thead>
             <tr>
               <Th>Lead</Th>
               <Th>Tipo</Th>
@@ -370,11 +369,11 @@ export function SeguimientosTable({
               <Th>{""}</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200">
+          <tbody>
             {noEnviados.map((row) => (
               <tr
                 key={`${row.lead.id}-${row.tipo}`}
-                className="hover:bg-red-50/40"
+                className="bg-red-50/30"
               >
                 <Td>
                   <LeadCell lead={row.lead} />
@@ -410,8 +409,8 @@ export function SeguimientosTable({
         empty="Todavía no se envió ningún seguimiento ni plantilla."
         defaultOpen
       >
-        <table className="min-w-full divide-y divide-zinc-200">
-          <thead className="bg-zinc-50">
+        <table className="table">
+          <thead>
             <tr>
               <Th>Lead</Th>
               <Th>Origen</Th>
@@ -421,11 +420,11 @@ export function SeguimientosTable({
               <Th>{""}</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200">
+          <tbody>
             {enviados.map((row) => (
               <tr
                 key={`${row.lead.id}-${row.tipo}`}
-                className="hover:bg-zinc-50/50"
+               
               >
                 <Td>
                   <LeadCell lead={row.lead} />

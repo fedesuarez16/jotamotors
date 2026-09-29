@@ -1,6 +1,8 @@
 import { getSupabaseServer } from "@/lib/supabase";
 import { LeadsCharts } from "@/components/LeadsCharts";
 
+import { StatCard } from "@/components/ui/StatCard";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -99,8 +101,8 @@ export default async function GraficosPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <p className="text-sm text-red-600">Error: {error.message}</p>
+      <div className="page">
+        <div className="alert-error">Error: {error.message}</div>
       </div>
     );
   }
@@ -117,10 +119,25 @@ export default async function GraficosPage() {
   const statusStats = buildStatusStats(leads);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <p className="mb-6 text-sm text-zinc-500">
-        Leads acumulados: <span className="font-semibold text-zinc-700">{leads.length}</span>
-      </p>
+    <div className="page">
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Leads totales" value={leads.length} />
+        <StatCard
+          label="Últimos 30 días"
+          value={recentLeads.length}
+          accent="sky"
+        />
+        <StatCard
+          label="Meta Ads"
+          value={sourceStats[0].value}
+          accent="brand"
+        />
+        <StatCard
+          label="Turnos tomados"
+          value={leads.filter((l) => l.status === "booked").length}
+          accent="emerald"
+        />
+      </div>
 
       <LeadsCharts
         dayStats={dayStats}

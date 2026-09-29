@@ -97,7 +97,7 @@ export function EditarMensajeButton({
         type="button"
         onClick={openModal}
         title="Editar mensaje"
-        className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-sky-50 hover:text-sky-600"
+        className="btn btn-sm text-zinc-500 hover:bg-brand-50 hover:text-brand-700"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -117,20 +117,22 @@ export function EditarMensajeButton({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/50 px-4 backdrop-blur-[2px]"
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-5 shadow-xl"
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-zinc-900">
+            <div className="m-stripe h-1 w-full" />
+            <div className="p-6">
+            <h3 className="font-display text-lg font-semibold text-ink-900">
               Editar mensaje — {lead.name ?? lead.phone}
             </h3>
 
             {tipo === "seguimiento_24h" && (
               <div className="mt-4">
-                <label className="block text-xs font-medium text-zinc-600">
+                <label className="label">
                   Texto (si el lead está dentro de las 24hs)
                 </label>
                 <textarea
@@ -139,13 +141,13 @@ export function EditarMensajeButton({
                   placeholder={DEFAULT_TEXTO}
                   rows={3}
                   maxLength={1000}
-                  className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm text-zinc-800"
+                  className="input mt-1"
                 />
               </div>
             )}
 
             <div className="mt-4">
-              <label className="block text-xs font-medium text-zinc-600">
+              <label className="label">
                 Plantilla (si quedó fuera de la ventana)
               </label>
               {templatesError ? (
@@ -154,7 +156,7 @@ export function EditarMensajeButton({
                 <select
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-800"
+                  className="input mt-1"
                 >
                   <option value="">(default)</option>
                   {templates.map((t) => (
@@ -179,7 +181,7 @@ export function EditarMensajeButton({
                 type="button"
                 onClick={() => setOpen(false)}
                 disabled={isPending}
-                className="rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
+                className="btn btn-ghost btn-sm"
               >
                 Cancelar
               </button>
@@ -187,7 +189,7 @@ export function EditarMensajeButton({
                 type="button"
                 onClick={reset}
                 disabled={isPending}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="btn btn-secondary btn-sm"
               >
                 Restablecer
               </button>
@@ -195,10 +197,11 @@ export function EditarMensajeButton({
                 type="button"
                 onClick={save}
                 disabled={isPending}
-                className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="btn btn-primary btn-sm"
               >
                 {isPending ? "…" : "Guardar"}
               </button>
+            </div>
             </div>
           </div>
         </div>

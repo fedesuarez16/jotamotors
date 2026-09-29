@@ -26,6 +26,13 @@ function formatPhone(phone: string): string {
   return phone.startsWith("+") ? phone : `+${phone}`;
 }
 
+function initials(lead: Lead): string {
+  const source = lead.name?.trim();
+  if (!source) return "#";
+  const parts = source.split(/\s+/).map((p) => p.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "#";
+}
+
 function hasOverride(lead: Lead): boolean {
   return Boolean(
     lead.seguimiento_override_texto || lead.seguimiento_override_template
@@ -72,25 +79,32 @@ export function LeadSidebar({ lead, inFollowup, onClose }: LeadSidebarProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-900/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-ink-950/50 backdrop-blur-[2px]" onClick={onClose}>
       <div
-        className="fixed inset-y-0 right-0 z-50 flex w-full flex-col overflow-y-auto border-l border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950 sm:w-96"
+        className="fixed inset-y-0 right-0 z-50 flex w-full flex-col overflow-y-auto bg-white shadow-2xl sm:w-[420px]"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="m-stripe h-1 w-full shrink-0" />
+        <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ink-900 font-display text-lg font-semibold text-white">
+              {initials(lead)}
+            </div>
+            <div>
+            <h2 className="font-display text-xl font-semibold leading-tight text-ink-900">
               {lead.name ?? "Sin nombre"}
             </h2>
-            <p className="mt-0.5 font-mono text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 font-mono text-sm text-zinc-500">
               {formatPhone(lead.phone)}
             </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-900"
+            className="btn-ghost btn p-1.5"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -109,65 +123,65 @@ export function LeadSidebar({ lead, inFollowup, onClose }: LeadSidebarProps) {
           </button>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-4 flex items-center gap-2">
           <ChatStateBadge state={lead.estado_chat} />
           <SourceBadge source={lead.source} />
         </div>
 
-        <dl className="mt-5 space-y-3 text-sm">
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+        <dl className="mt-6 grid grid-cols-3 gap-2 text-sm">
+          <div className="rounded-xl bg-zinc-50 p-3">
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
               Primer contacto
             </dt>
-            <dd className="text-zinc-700 dark:text-zinc-300">
+            <dd className="mt-1 text-xs font-medium text-ink-900">
               {formatDate(lead.first_seen_at)}
             </dd>
           </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+          <div className="rounded-xl bg-zinc-50 p-3">
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
               Último contacto
             </dt>
-            <dd className="text-zinc-700 dark:text-zinc-300">
+            <dd className="mt-1 text-xs font-medium text-ink-900">
               {formatDate(lead.last_seen_at)}
             </dd>
           </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+          <div className="rounded-xl bg-zinc-50 p-3">
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
               Mensajes
             </dt>
-            <dd className="text-zinc-700 dark:text-zinc-300">
+            <dd className="mt-1 text-xs font-medium text-ink-900">
               {lead.message_count}
             </dd>
           </div>
         </dl>
 
         {(lead.ad_headline || lead.ad_body) && (
-          <div className="mt-5 rounded-md border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mt-5 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
               Aviso de origen
             </p>
             {lead.ad_headline && (
-              <p className="mt-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              <p className="mt-1 text-sm font-medium text-ink-900">
                 {lead.ad_headline}
               </p>
             )}
             {lead.ad_body && (
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1 text-sm text-zinc-600">
                 {lead.ad_body}
               </p>
             )}
           </div>
         )}
 
-        <div className="mt-5 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <div className="mt-5 rounded-xl border border-zinc-200 p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
             Seguimiento
           </p>
-          <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">
+          <p className="mt-1 text-sm text-zinc-700">
             {seguimientoStatus}
           </p>
           {hasOverride(lead) && (
-            <p className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+            <p className="mt-1 text-xs font-medium text-brand-700">
               Mensaje personalizado
             </p>
           )}
@@ -178,11 +192,11 @@ export function LeadSidebar({ lead, inFollowup, onClose }: LeadSidebarProps) {
                 <button
                   type="button"
                   disabled
-                  className="w-full cursor-not-allowed rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
+                  className="btn btn-secondary w-full"
                 >
                   {inFollowup ? "Quitar de seguimiento" : "Agregar a seguimiento"}
                 </button>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="mt-1 text-xs text-zinc-500">
                   {disabledReason}
                 </p>
               </div>
@@ -193,8 +207,8 @@ export function LeadSidebar({ lead, inFollowup, onClose }: LeadSidebarProps) {
                 disabled={isPending}
                 className={
                   inFollowup
-                    ? "w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                    : "w-full rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-900/50 dark:bg-zinc-950 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                    ? "btn btn-secondary w-full"
+                    : "btn btn-brand w-full"
                 }
               >
                 {isPending
@@ -207,10 +221,10 @@ export function LeadSidebar({ lead, inFollowup, onClose }: LeadSidebarProps) {
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-auto pt-6">
           <Link
             href={`/chats?lead=${lead.id}`}
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-900"
+            className="btn btn-primary w-full py-2.5"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -225,8 +239,9 @@ export function LeadSidebar({ lead, inFollowup, onClose }: LeadSidebarProps) {
             >
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-            Ver chat
+            Ver conversación
           </Link>
+        </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -33,6 +34,22 @@ const IconTurnos = () => (
   </svg>
 );
 
+const IconClientes = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+
+const IconCotizaciones = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+  </svg>
+);
+
 const IconEnvios = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13" />
@@ -59,6 +76,8 @@ const items: NavItem[] = [
   { href: "/", label: "Leads", icon: <IconLeads /> },
   { href: "/chats", label: "Chats", icon: <IconChats /> },
   { href: "/turnos", label: "Turnos", icon: <IconTurnos /> },
+  { href: "/clientes", label: "Clientes", icon: <IconClientes /> },
+  { href: "/cotizaciones", label: "Cotizaciones", icon: <IconCotizaciones /> },
   { href: "/envios", label: "Envíos", icon: <IconEnvios /> },
   { href: "/seguimientos", label: "Seguimientos", icon: <IconSeguimientos /> },
   { href: "/graficos", label: "Gráficos", icon: <IconGraficos /> },
@@ -73,28 +92,34 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-100 bg-white">
-      <div className="px-5 py-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-900">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-            </svg>
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col bg-ink-900 text-zinc-300">
+      <div className="px-5 pb-5 pt-6">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/10">
+            <Image
+              src="/logo-jotamotors.jpeg"
+              alt="Jotamotors"
+              fill
+              sizes="44px"
+              priority
+              className="scale-[1.7] object-cover"
+            />
           </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight text-zinc-900">
-              Jotamotors
-            </h1>
-            <p className="text-xs text-zinc-400">CRM WhatsApp</p>
+          <div className="min-w-0">
+            <p className="font-display text-lg font-semibold leading-none tracking-wide text-white">
+              JOTAMOTORS
+            </p>
+            <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+              CRM Taller
+            </p>
           </div>
-        </div>
+        </Link>
+        <div className="m-stripe mt-5 h-[3px] w-full rounded-full opacity-90" />
       </div>
 
-      <div className="mx-3 h-px bg-zinc-100" />
-
-      <nav className="flex flex-1 flex-col gap-0.5 p-3 pt-4">
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-widest text-zinc-400">
-          Secciones
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3 pt-2">
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+          Menú
         </p>
         {items.map((it) => {
           const active = isActive(pathname, it.href);
@@ -102,37 +127,38 @@ export function Sidebar() {
             <Link
               key={it.href}
               href={it.href}
+              aria-current={active ? "page" : undefined}
               className={
                 active
-                  ? "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold bg-zinc-900 text-white transition-all duration-150"
-                  : "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-all duration-150 hover:bg-zinc-50 hover:text-zinc-900"
+                  ? "group relative flex items-center gap-3 rounded-lg bg-white/[0.07] px-3 py-2.5 text-sm font-semibold text-white"
+                  : "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 transition-colors duration-150 hover:bg-white/[0.04] hover:text-zinc-100"
               }
             >
+              {active && (
+                <span className="m-stripe-v absolute inset-y-2 left-0 w-[3px] rounded-full" />
+              )}
               <span
                 className={
                   active
-                    ? "text-white transition-colors"
-                    : "text-zinc-400 transition-colors group-hover:text-zinc-700"
+                    ? "text-m-sky"
+                    : "text-zinc-500 transition-colors group-hover:text-zinc-300"
                 }
               >
                 {it.icon}
               </span>
               <span className="flex-1">{it.label}</span>
-              {active && (
-                <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
-              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-zinc-100 px-5 py-4">
+      <div className="border-t border-white/[0.06] px-5 py-4">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
           </span>
-          <span className="text-xs text-zinc-400">Sistema activo</span>
+          <span className="text-xs text-zinc-500">Sistema activo</span>
         </div>
       </div>
     </aside>

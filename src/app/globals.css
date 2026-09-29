@@ -1,16 +1,44 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/*
+ * Jotamotors design system
+ * Identidad tomada del logo: grafito carbono + metal + franja tricolor M
+ * (rojo / azul / celeste). Sin amarillo.
+ */
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
+  --background: #f3f4f6;
+  --foreground: #16181d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Grafito (sidebar, primario) */
+  --color-ink-950: #0e0f12;
+  --color-ink-900: #16181d;
+  --color-ink-800: #1f2228;
+  --color-ink-700: #2b2f37;
+
+  /* Franja M */
+  --color-m-red: #e0303e;
+  --color-m-navy: #1d3d9e;
+  --color-m-sky: #1fb3e6;
+
+  /* Acento funcional */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe7fe;
+  --color-brand-200: #bcd3fd;
+  --color-brand-500: #2563eb;
+  --color-brand-600: #1d4fd7;
+  --color-brand-700: #1d3d9e;
+
+  /* Legacy: usado por el panel de cotización */
+  --color-navy: #16181d;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-barlow), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
@@ -18,4 +46,136 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Franja tricolor de la marca */
+  .m-stripe {
+    background: linear-gradient(
+      90deg,
+      var(--color-m-red) 0 33.33%,
+      var(--color-m-navy) 33.33% 66.66%,
+      var(--color-m-sky) 66.66% 100%
+    );
+  }
+  .m-stripe-v {
+    background: linear-gradient(
+      180deg,
+      var(--color-m-red) 0 33.33%,
+      var(--color-m-navy) 33.33% 66.66%,
+      var(--color-m-sky) 66.66% 100%
+    );
+  }
+
+  /* Layout de página */
+  .page {
+    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+  }
+  .page-header {
+    @apply mb-6 flex flex-wrap items-end justify-between gap-4;
+  }
+  .page-title {
+    @apply font-display text-2xl font-semibold tracking-tight text-ink-900;
+  }
+  .page-subtitle {
+    @apply mt-1 text-sm text-zinc-500;
+  }
+  .section-title {
+    @apply font-display text-base font-semibold tracking-tight text-ink-900;
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500;
+  }
+
+  /* Superficies */
+  .card {
+    @apply rounded-xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)];
+  }
+  .card-header {
+    @apply flex items-center justify-between gap-3 border-b border-zinc-100 px-5 py-4;
+  }
+  .card-body {
+    @apply p-5;
+  }
+
+  /* Botones */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply px-2.5 py-1.5 text-xs;
+  }
+  .btn-primary {
+    @apply bg-ink-900 text-white shadow-sm hover:bg-ink-700;
+  }
+  .btn-brand {
+    @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:border-zinc-300 hover:bg-zinc-50;
+  }
+  .btn-ghost {
+    @apply text-zinc-600 hover:bg-zinc-100 hover:text-ink-900;
+  }
+  .btn-danger {
+    @apply border border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50;
+  }
+
+  /* Formularios */
+  .input {
+    @apply w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm transition-colors placeholder:text-zinc-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-zinc-50 disabled:text-zinc-400;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-zinc-600;
+  }
+
+  /* Tablas */
+  .table {
+    @apply min-w-full text-sm;
+  }
+  .table thead {
+    @apply bg-zinc-50/80;
+  }
+  .table th {
+    @apply border-b border-zinc-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 whitespace-nowrap;
+  }
+  .table td {
+    @apply border-b border-zinc-100 px-4 py-3 align-middle text-zinc-700;
+  }
+  .table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .table tbody tr {
+    @apply transition-colors hover:bg-zinc-50/70;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-inset;
+  }
+  .badge-dot {
+    @apply h-1.5 w-1.5 rounded-full bg-current;
+  }
+
+  /* Chips de filtro */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-ink-900;
+  }
+  .chip-active {
+    @apply border-ink-900 bg-ink-900 text-white hover:border-ink-900 hover:text-white;
+  }
+
+  /* Estados vacíos y alertas */
+  .empty {
+    @apply rounded-xl border border-dashed border-zinc-300 bg-white/60 flex flex-col items-center justify-center gap-2 px-6 py-14 text-center;
+  }
+  .alert-error {
+    @apply rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800;
+  }
+  .alert-success {
+    @apply rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800;
+  }
+  .alert-info {
+    @apply rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-700;
+  }
 }

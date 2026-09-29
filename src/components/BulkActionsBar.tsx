@@ -54,10 +54,12 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5">
-      <span className="text-sm font-medium text-blue-900">
-        {selectedIds.length} seleccionado
-        {selectedIds.length === 1 ? "" : "s"}
+    <div className="sticky top-20 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-ink-900 px-4 py-2.5 text-white shadow-lg shadow-ink-900/20">
+      <span className="flex items-center gap-2 text-sm font-medium text-white">
+        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-ink-900">
+          {selectedIds.length}
+        </span>
+        seleccionado{selectedIds.length === 1 ? "" : "s"}
       </span>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -65,7 +67,7 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
           type="button"
           onClick={() => run(() => bulkAddFollowupAction(selectedIds))}
           disabled={pending}
-          className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn btn-sm bg-white/10 text-white hover:bg-white/20"
         >
           Agregar a seguimiento
         </button>
@@ -74,7 +76,7 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
           type="button"
           onClick={() => run(() => bulkRemoveFollowupAction(selectedIds))}
           disabled={pending}
-          className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn btn-sm bg-white/10 text-white hover:bg-white/20"
         >
           Quitar de seguimiento
         </button>
@@ -84,7 +86,7 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
             type="button"
             onClick={() => setMenuOpen((s) => !s)}
             disabled={pending}
-            className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn btn-sm bg-white/10 text-white hover:bg-white/20"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
@@ -93,7 +95,7 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
           {menuOpen && (
             <div
               role="menu"
-              className="absolute right-0 top-full z-10 mt-1 w-40 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg"
+              className="absolute right-0 top-full z-10 mt-1.5 w-40 overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-xl"
             >
               {chatStateOptions.map((opt) => (
                 <button
@@ -102,7 +104,7 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
                   role="menuitem"
                   onClick={() => handleChatState(opt.value)}
                   disabled={pending}
-                  className="block w-full px-3 py-1.5 text-left text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="block w-full px-3 py-2 text-left text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {opt.label}
                 </button>
@@ -115,22 +117,22 @@ export function BulkActionsBar({ selectedIds, onDone }: BulkActionsBarProps) {
           type="button"
           onClick={handleDelete}
           disabled={pending}
-          className="rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn btn-sm bg-red-500/15 text-red-300 hover:bg-red-500/25"
         >
           Borrar
         </button>
 
-        <div className="h-5 w-px bg-blue-200" aria-hidden />
+        <div className="h-5 w-px bg-white/15" aria-hidden />
 
         <BulkSendButton selectedIds={selectedIds} />
 
-        <div className="h-5 w-px bg-blue-200" aria-hidden />
+        <div className="h-5 w-px bg-white/15" aria-hidden />
 
         <button
           type="button"
           onClick={onDone}
           disabled={pending}
-          className="rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn btn-sm text-zinc-400 hover:bg-white/10 hover:text-white"
         >
           Cancelar
         </button>

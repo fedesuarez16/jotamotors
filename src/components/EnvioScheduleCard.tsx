@@ -32,25 +32,33 @@ export function EnvioScheduleCard({ sendHour }: EnvioScheduleCardProps) {
   const dirty = hour !== savedHour;
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-zinc-900">
+    <div className="card mb-8 flex flex-wrap items-center justify-between gap-4 px-5 py-4">
+      <div className="flex items-center gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-m-sky">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <div>
+        <p className="section-title">
           Horario del envío automático diario
         </p>
         <p className="mt-0.5 text-xs text-zinc-500">
           La plantilla de seguimiento se envía todos los días a las{" "}
-          <span className="font-medium text-zinc-700">
+          <span className="font-semibold text-ink-900">
             {formatHour(savedHour)} hs
           </span>{" "}
           (hora Argentina).
         </p>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <select
           value={hour}
           onChange={(e) => setHour(Number(e.target.value))}
           disabled={pending}
-          className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs text-zinc-800 disabled:opacity-50"
+          className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-ink-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
         >
           {hours.map((h) => (
             <option key={h} value={h}>
@@ -62,7 +70,7 @@ export function EnvioScheduleCard({ sendHour }: EnvioScheduleCardProps) {
           type="button"
           onClick={save}
           disabled={pending || !dirty}
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn btn-brand btn-sm"
         >
           {pending ? "Guardando..." : "Guardar"}
         </button>

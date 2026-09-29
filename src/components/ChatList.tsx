@@ -18,6 +18,18 @@ function formatRelative(iso: string): string {
   return d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" });
 }
 
+function initials(lead: Lead): string {
+  const name = lead.name?.trim();
+  if (!name) return "#";
+  return name
+    .split(/\s+/)
+    .map((p) => p.replace(/[^\p{L}\p{N}]/gu, ""))
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("") || "#";
+}
+
 interface ChatListProps {
   leads: Lead[];
   activeId: string | null;
@@ -25,9 +37,9 @@ interface ChatListProps {
 
 export function ChatList({ leads, activeId }: ChatListProps) {
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-r border-zinc-200 bg-white">
+    <aside className="flex w-80 shrink-0 flex-col border-r border-zinc-200/80 bg-white">
       <div className="border-b border-zinc-200 px-4 py-4">
-        <h2 className="text-sm font-semibold text-zinc-900">Conversaciones</h2>
+        <h2 className="section-title">Conversaciones</h2>
         <p className="mt-0.5 text-xs text-zinc-500">
           {leads.length} {leads.length === 1 ? "contacto" : "contactos"}
         </p>
@@ -47,12 +59,23 @@ export function ChatList({ leads, activeId }: ChatListProps) {
                 href={`/chats?lead=${lead.id}`}
                 className={
                   active
-                    ? "block border-b border-zinc-100 bg-zinc-100 px-4 py-3"
-                    : "block border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50"
+                    ? "relative flex items-center gap-3 border-b border-zinc-100 bg-brand-50/60 px-4 py-3"
+                    : "relative flex items-center gap-3 border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-zinc-50"
                 }
               >
+                {active && (
+                  <span className="m-stripe-v absolute inset-y-0 left-0 w-[3px]" />
+                )}
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-sm font-semibold ${
+                    active ? "bg-ink-900 text-white" : "bg-zinc-100 text-zinc-600"
+                  }`}
+                >
+                  {initials(lead)}
+                </div>
+                <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium text-zinc-900">
+                  <p className="truncate text-sm font-medium text-ink-900">
                     {displayName}
                   </p>
                   <span className="shrink-0 text-[11px] text-zinc-500">
@@ -65,6 +88,7 @@ export function ChatList({ leads, activeId }: ChatListProps) {
                   {" · "}
                   {lead.source === "meta_ads" ? "Meta Ads" : "Orgánico"}
                 </p>
+                </div>
               </Link>
             );
           })

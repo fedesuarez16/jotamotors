@@ -40,7 +40,7 @@ export function InlineSelect({
       value={current}
       onChange={handleChange}
       disabled={isPending}
-      className="rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 shadow-sm transition-opacity disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+      className="cursor-pointer rounded-lg border border-zinc-200 bg-white py-1 pl-2 pr-7 text-xs font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
     >
       {options.map(({ value, label }) => (
         <option key={value} value={value}>

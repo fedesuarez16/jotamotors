@@ -106,7 +106,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
       <button
         type="button"
         onClick={loadTemplates}
-        className="rounded-md border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-50"
+        className="btn btn-sm bg-brand-600 text-white hover:bg-brand-500"
       >
         Envío masivo
       </button>
@@ -115,7 +115,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
 
   if (phase === "loading-templates") {
     return (
-      <span className="text-xs font-medium text-zinc-600">
+      <span className="text-xs font-medium text-zinc-300">
         Cargando plantillas
         <span className="inline-block animate-pulse">...</span>
       </span>
@@ -133,7 +133,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
             )
           }
           title={selectedTemplate?.bodyText}
-          className="max-w-56 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs text-zinc-800"
+          className="max-w-56 rounded-lg border border-white/15 bg-ink-800 px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-none"
         >
           {templates.map((t) => (
             <option key={t.name} value={t.name} title={t.bodyText}>
@@ -141,7 +141,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
             </option>
           ))}
         </select>
-        <span className="text-xs text-zinc-700">
+        <span className="text-xs text-zinc-300">
           a {selectedIds.length} contacto{selectedIds.length === 1 ? "" : "s"}
         </span>
         <input
@@ -150,20 +150,20 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
           min={nowLocalValue()}
           onChange={(e) => setScheduleAt(e.target.value)}
           title="Dejalo vacío para enviar ahora"
-          className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-800"
+          className="rounded-lg border border-white/15 bg-ink-800 px-2 py-1 text-xs text-white focus:border-brand-500 focus:outline-none"
         />
         <button
           type="button"
           onClick={send}
           disabled={!selectedTemplate}
-          className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+          className="btn btn-sm bg-brand-600 text-white hover:bg-brand-500"
         >
           {scheduleAt ? "Programar" : "Enviar ahora"}
         </button>
         <button
           type="button"
           onClick={() => setPhase("idle")}
-          className="rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-white"
+          className="btn btn-sm text-zinc-400 hover:bg-white/10 hover:text-white"
         >
           Cancelar
         </button>
@@ -173,7 +173,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
 
   if (phase === "sending") {
     return (
-      <span className="text-xs font-medium text-zinc-600">
+      <span className="text-xs font-medium text-zinc-300">
         {scheduleAt ? "Programando" : "Enviando"}{" "}
         <span className="inline-block animate-pulse">...</span>
       </span>
@@ -183,7 +183,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
   if ("scheduledFor" in phase) {
     return (
       <span className="flex items-center gap-3">
-        <span className="text-xs font-medium text-green-700">
+        <span className="text-xs font-medium text-emerald-300">
           Programado para el{" "}
           {new Date(phase.scheduledFor).toLocaleString("es-AR", {
             day: "2-digit",
@@ -196,7 +196,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
         <button
           type="button"
           onClick={() => setPhase("idle")}
-          className="rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-white"
+          className="btn btn-sm text-zinc-400 hover:bg-white/10 hover:text-white"
         >
           OK
         </button>
@@ -208,13 +208,13 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
   const { sent, failed, failures } = phase;
   return (
     <span className="flex items-center gap-3">
-      <span className="text-xs font-medium text-green-700">
+      <span className="text-xs font-medium text-emerald-300">
         {sent} {sent === 1 ? "enviado" : "enviados"}
       </span>
       {failed > 0 && (
         <span
           title={failures.map((f) => `${f.phone}: ${f.error}`).join("\n")}
-          className="cursor-help text-xs font-medium text-red-600 underline decoration-dotted"
+          className="cursor-help text-xs font-medium text-red-300 underline decoration-dotted"
         >
           {failed} {failed === 1 ? "fallido" : "fallidos"}
         </span>
@@ -222,7 +222,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
       <button
         type="button"
         onClick={() => setPhase("idle")}
-        className="rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-white"
+        className="btn btn-sm text-zinc-400 hover:bg-white/10 hover:text-white"
       >
         OK
       </button>

@@ -5,11 +5,40 @@ import type {
   SeguimientoTipo,
 } from "@/lib/types";
 
-const sourceStyles: Record<LeadSource, string> = {
-  meta_ads:
-    "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900",
-  organic:
-    "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
+const tone = {
+  brand: "bg-brand-50 text-brand-700 ring-brand-200",
+  sky: "bg-sky-50 text-sky-700 ring-sky-200",
+  indigo: "bg-indigo-50 text-indigo-700 ring-indigo-200",
+  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  red: "bg-red-50 text-red-700 ring-red-200",
+  neutral: "bg-zinc-100 text-zinc-600 ring-zinc-200",
+  ink: "bg-ink-900 text-white ring-ink-900",
+} as const;
+
+type Tone = keyof typeof tone;
+
+function Badge({
+  tone: t,
+  dot = false,
+  className = "",
+  children,
+}: {
+  tone: Tone;
+  dot?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <span className={`badge ${tone[t]} ${className}`}>
+      {dot && <span className="badge-dot" aria-hidden />}
+      {children}
+    </span>
+  );
+}
+
+const sourceTone: Record<LeadSource, Tone> = {
+  meta_ads: "brand",
+  organic: "neutral",
 };
 
 const sourceLabel: Record<LeadSource, string> = {
@@ -17,16 +46,12 @@ const sourceLabel: Record<LeadSource, string> = {
   organic: "Orgánico",
 };
 
-const statusStyles: Record<LeadStatus, string> = {
-  new: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900",
-  engaged:
-    "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-900",
-  qualified:
-    "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-900",
-  booked:
-    "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900",
-  closed:
-    "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700",
+const statusTone: Record<LeadStatus, Tone> = {
+  new: "brand",
+  engaged: "sky",
+  qualified: "indigo",
+  booked: "emerald",
+  closed: "neutral",
 };
 
 const statusLabel: Record<LeadStatus, string> = {
@@ -38,32 +63,21 @@ const statusLabel: Record<LeadStatus, string> = {
 };
 
 export function SourceBadge({ source }: { source: LeadSource }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${sourceStyles[source]}`}
-    >
-      {sourceLabel[source]}
-    </span>
-  );
+  return <Badge tone={sourceTone[source]}>{sourceLabel[source]}</Badge>;
 }
 
 export function StatusBadge({ status }: { status: LeadStatus }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusStyles[status]}`}
-    >
+    <Badge tone={statusTone[status]} dot>
       {statusLabel[status]}
-    </span>
+    </Badge>
   );
 }
 
-const chatStateStyles: Record<ChatState, string> = {
-  inactivo:
-    "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700",
-  activo:
-    "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900",
-  cerrado:
-    "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-900",
+const chatStateTone: Record<ChatState, Tone> = {
+  inactivo: "neutral",
+  activo: "emerald",
+  cerrado: "red",
 };
 
 const chatStateLabel: Record<ChatState, string> = {
@@ -74,19 +88,15 @@ const chatStateLabel: Record<ChatState, string> = {
 
 export function ChatStateBadge({ state }: { state: ChatState }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${chatStateStyles[state]}`}
-    >
+    <Badge tone={chatStateTone[state]} dot>
       {chatStateLabel[state]}
-    </span>
+    </Badge>
   );
 }
 
-const seguimientoTipoStyles: Record<SeguimientoTipo, string> = {
-  seguimiento_24h:
-    "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-900",
-  plantilla:
-    "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-900",
+const seguimientoTipoTone: Record<SeguimientoTipo, Tone> = {
+  seguimiento_24h: "sky",
+  plantilla: "indigo",
 };
 
 const seguimientoTipoLabel: Record<SeguimientoTipo, string> = {
@@ -96,18 +106,14 @@ const seguimientoTipoLabel: Record<SeguimientoTipo, string> = {
 
 export function SeguimientoTipoBadge({ tipo }: { tipo: SeguimientoTipo }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${seguimientoTipoStyles[tipo]}`}
-    >
-      {seguimientoTipoLabel[tipo]}
-    </span>
+    <Badge tone={seguimientoTipoTone[tipo]}>{seguimientoTipoLabel[tipo]}</Badge>
   );
 }
 
 export function PersonalizadoBadge() {
   return (
-    <span className="ml-2 inline-flex items-center rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300">
+    <Badge tone="ink" className="ml-2 px-2 text-[10px]">
       Personalizado
-    </span>
+    </Badge>
   );
 }

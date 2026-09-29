@@ -12,9 +12,9 @@ const ESTADO_LABELS: Record<TurnoEstado, string> = {
 };
 
 const ESTADO_COLORS: Record<TurnoEstado, string> = {
-  pendiente: "bg-yellow-100 text-yellow-800",
-  confirmado: "bg-green-100 text-green-800",
-  cancelado: "bg-red-100 text-red-800",
+  pendiente: "bg-brand-50 text-brand-700 ring-brand-200",
+  confirmado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  cancelado: "bg-red-50 text-red-700 ring-red-200",
 };
 
 function EstadoSelect({ id, estado }: { id: string; estado: TurnoEstado }) {
@@ -24,7 +24,7 @@ function EstadoSelect({ id, estado }: { id: string; estado: TurnoEstado }) {
     <select
       defaultValue={estado}
       disabled={isPending}
-      className="rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 disabled:opacity-50"
+      className="cursor-pointer rounded-lg border border-zinc-200 bg-white py-1 pl-2 pr-7 text-xs font-medium text-zinc-700 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
       onChange={(e) => {
         startTransition(async () => {
           await setTurnoEstadoAction(id, e.target.value);
@@ -49,7 +49,7 @@ function NotaInput({ id, nota }: { id: string; nota: string | null }) {
       defaultValue={nota ?? ""}
       placeholder="—"
       disabled={isPending}
-      className="w-full min-w-[120px] rounded border border-zinc-200 bg-transparent px-2 py-1 text-xs text-zinc-700 placeholder-zinc-300 focus:border-zinc-400 focus:outline-none disabled:opacity-50"
+      className="w-full min-w-[140px] rounded-lg border border-transparent bg-transparent px-2 py-1 text-xs text-zinc-700 placeholder-zinc-300 transition hover:border-zinc-200 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
       onBlur={(e) => {
         const value = e.target.value.trim();
         if (value === (nota ?? "")) return;
@@ -64,7 +64,8 @@ function NotaInput({ id, nota }: { id: string; nota: string | null }) {
 export function TurnosTable({ turnos }: { turnos: Turno[] }) {
   if (turnos.length === 0) {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-white px-6 py-12 text-center">
+      <div className="empty">
+        <p className="font-display text-base font-semibold text-ink-900">Sin turnos</p>
         <p className="text-sm text-zinc-500">
           No hay turnos registrados todavía.
         </p>
@@ -73,9 +74,9 @@ export function TurnosTable({ turnos }: { turnos: Turno[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200">
-      <table className="min-w-full divide-y divide-zinc-200 bg-white text-sm">
-        <thead className="bg-zinc-50">
+    <div className="card overflow-x-auto">
+      <table className="table">
+        <thead>
           <tr>
             {[
               "Nombre / Teléfono",
@@ -86,20 +87,17 @@ export function TurnosTable({ turnos }: { turnos: Turno[] }) {
               "Notas",
               "Recibido",
             ].map((h) => (
-              <th
-                key={h}
-                className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500"
-              >
+              <th key={h}>
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-200">
+        <tbody>
           {turnos.map((turno) => (
-            <tr key={turno.id} className="hover:bg-zinc-50">
-              <td className="px-4 py-3">
-                <span className="block text-sm font-medium text-zinc-800">
+            <tr key={turno.id}>
+              <td>
+                <span className="block text-sm font-medium text-ink-900">
                   {turno.leads?.name ?? (
                     <span className="font-mono text-xs text-zinc-500">
                       {turno.phone}
@@ -112,17 +110,17 @@ export function TurnosTable({ turnos }: { turnos: Turno[] }) {
                   </span>
                 )}
               </td>
-              <td className="px-4 py-3 text-zinc-700">{turno.dia_raw}</td>
-              <td className="px-4 py-3 text-zinc-700">{turno.hora_raw}</td>
-              <td className="px-4 py-3 text-zinc-500">
+              <td>{turno.dia_raw}</td>
+              <td>{turno.hora_raw}</td>
+              <td className="text-zinc-500">
                 {turno.servicio ?? (
                   <span className="text-zinc-300">—</span>
                 )}
               </td>
-              <td className="px-4 py-3">
+              <td>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ESTADO_COLORS[turno.estado as TurnoEstado]}`}
+                    className={`badge ${ESTADO_COLORS[turno.estado as TurnoEstado]}`}
                   >
                     {ESTADO_LABELS[turno.estado as TurnoEstado]}
                   </span>
@@ -132,10 +130,10 @@ export function TurnosTable({ turnos }: { turnos: Turno[] }) {
                   />
                 </div>
               </td>
-              <td className="px-4 py-3">
+              <td>
                 <NotaInput id={turno.id} nota={turno.notas_operador} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-400">
+              <td className="whitespace-nowrap text-xs text-zinc-400">
                 {new Date(turno.created_at).toLocaleString("es-CL", {
                   dateStyle: "short",
                   timeStyle: "short",

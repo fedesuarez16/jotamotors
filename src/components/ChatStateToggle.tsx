@@ -10,6 +10,12 @@ const OPTIONS: { value: ChatState; label: string }[] = [
   { value: "inactivo", label: "Inactivo" },
 ];
 
+const STATE_STYLES: Record<ChatState, string> = {
+  activo: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  cerrado: "border-red-200 bg-red-50 text-red-700",
+  inactivo: "border-zinc-200 bg-zinc-50 text-zinc-600",
+};
+
 interface ChatStateToggleProps {
   phone: string;
   currentState: ChatState;
@@ -35,7 +41,7 @@ export function ChatStateToggle({ phone, currentState }: ChatStateToggleProps) {
       value={currentState}
       onChange={handleChange}
       disabled={isPending}
-      className="rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 shadow-sm transition-opacity disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+      className={`cursor-pointer rounded-full border py-1 pl-2.5 pr-7 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 ${STATE_STYLES[currentState]}`}
     >
       {OPTIONS.map(({ value, label }) => (
         <option key={value} value={value}>
