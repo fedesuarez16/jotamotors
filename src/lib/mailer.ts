@@ -29,6 +29,7 @@ export interface MailAttachment {
   filename: string;
   content: Uint8Array;
   contentType: string;
+  cid?: string;
 }
 
 export async function sendMail(opts: {
@@ -49,6 +50,7 @@ export async function sendMail(opts: {
       filename: a.filename,
       content: Buffer.from(a.content),
       contentType: a.contentType,
+      ...(a.cid ? { cid: a.cid } : {}),
     })),
   });
 }

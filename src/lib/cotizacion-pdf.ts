@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { Cotizacion } from "./types";
 import { formatCLP, numeroCotizacion, subtotalItem } from "./cotizacion";
@@ -8,6 +10,9 @@ const INK = rgb(0.094, 0.094, 0.106); // zinc-900
 const MUTED = rgb(0.443, 0.443, 0.478); // zinc-500
 const LINE = rgb(0.894, 0.894, 0.906); // zinc-200
 const HEAD_BG = rgb(0.98, 0.98, 0.98); // zinc-50
+const BRAND_RED = rgb(0.878, 0.188, 0.243);
+const BRAND_NAVY = rgb(0.114, 0.239, 0.62);
+const BRAND_SKY = rgb(0.122, 0.702, 0.902);
 
 /** Las fuentes estándar de PDF solo codifican WinAnsi: normalizo comillas/guiones y saco lo que no entra. */
 function winAnsi(text: string): string {
@@ -67,6 +72,7 @@ function empresaDesdeEnv(): Empresa {
 
 export async function buildCotizacionPdf(cot: Cotizacion): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
+  const logo = await doc.embedJpg(await readFile(join(process.cwd(), "public", "logo-jotamotors.jpeg")));
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const empresa = empresaDesdeEnv();
@@ -88,14 +94,22 @@ export async function buildCotizacionPdf(cot: Cotizacion): Promise<Uint8Array> {
   // Encabezado
   const creada = new Date(cot.created_at);
   const vence = new Date(creada.getTime() + cot.validez_dias * 86_400_000);
-  text(empresa.nombre, MARGIN, y - 16, { font: bold, size: 20 });
-  empresa.lineas.forEach((l, i) => text(l, MARGIN, y - 34 - i * 13, { size: 9, color: MUTED }));
+  const logoSize = 44;
+  page.drawImage(logo, { x: MARGIN, y: y - logoSize, width: logoSize, height: logoSize });
+  const empresaX = MARGIN + logoSize + 12;
+  text(empresa.nombre, empresaX, y - 16, { font: bold, size: 20 });
+  empresa.lineas.forEach((l, i) => text(l, empresaX, y - 34 - i * 13, { size: 9, color: MUTED }));
   const right = MARGIN + width;
   textRight("COTIZACIÓN", right, y - 14, bold, 14);
   textRight(numero, right, y - 30, regular, 10, MUTED);
   textRight(`Fecha: ${fechaCorta(creada)}`, right, y - 44, regular, 9, MUTED);
   textRight(`Válida hasta: ${fechaCorta(vence)}`, right, y - 57, regular, 9, MUTED);
   y -= Math.max(70, 44 + empresa.lineas.length * 13);
+  const stripeY = y + 1;
+  const stripeWidth = width / 3;
+  page.drawRectangle({ x: MARGIN, y: stripeY, width: stripeWidth, height: 2, color: BRAND_RED });
+  page.drawRectangle({ x: MARGIN + stripeWidth, y: stripeY, width: stripeWidth, height: 2, color: BRAND_NAVY });
+  page.drawRectangle({ x: MARGIN + stripeWidth * 2, y: stripeY, width: width - stripeWidth * 2, height: 2, color: BRAND_SKY });
   hr(y);
   y -= 22;
 
