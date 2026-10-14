@@ -30,7 +30,23 @@ async function fetchCotizaciones(): Promise<Cotizacion[]> {
   return (data ?? []) as Cotizacion[];
 }
 
-export default async function CotizacionesPage() {
+async function fetchBorrador(id: string): Promise<Cotizacion | null> {
+  const supabase = getSupabaseServer();
+  const { data } = await supabase
+    .from("cotizaciones")
+    .select("*")
+    .eq("id", id)
+    .neq("estado", "enviada")
+    .maybeSingle();
+  return (data as Cotizacion | null) ?? null;
+}
+
+export default async function CotizacionesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ borrador?: string }>;
+}) {
+  const { borrador: borradorId } = await searchParams;
   let cotizaciones: Cotizacion[] = [];
   let errorMessage: string | null = null;
 
@@ -39,15 +55,25 @@ export default async function CotizacionesPage() {
   } catch (err) {
     errorMessage = err instanceof Error ? err.message : "Unknown error";
   }
+  const borrador = borradorId ? await fetchBorrador(borradorId) : null;
 
   return (
     <div className="page space-y-10">
       <div>
-        <h2 className="page-title">Nueva cotización</h2>
-        <p className="page-subtitle">Completá los datos, revisá el resumen y enviala por mail con el PDF adjunto.</p>
+        <h2 className="page-title">
+          {borrador ? `Retomando ${numeroCotizacion(borrador.numero)}` : "Nueva cotización"}
+        </h2>
+        <p className="page-subtitle">
+          {borrador
+            ? "Seguí completando el borrador. Podés guardarlo de nuevo o enviarlo cuando esté listo."
+            : "Completá los datos, revisá el resumen y enviala por mail con el PDF adjunto. Si no terminás, guardala como borrador."}
+        </p>
+        {borradorId && !borrador && (
+          <p className="mt-2 text-sm text-red-600">Ese borrador no existe o ya fue enviado.</p>
+        )}
       </div>
 
-      <CotizacionForm />
+      <CotizacionForm inicial={borrador} />
 
       <section>
         <div className="mb-4 flex items-baseline justify-between">
@@ -80,7 +106,9 @@ export default async function CotizacionesPage() {
                   <tr key={c.id}>
                     <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-700">{numeroCotizacion(c.numero)}</td>
                     <td className="px-4 py-3">
-                      <span className="block font-medium text-ink-900">{c.cliente_nombre}</span>
+                      <span className="block font-medium text-ink-900">
+                        {c.cliente_nombre || <span className="text-zinc-400">Sin nombre</span>}
+                      </span>
                       <span className="text-xs text-zinc-400">{c.cliente_email}</span>
                     </td>
                     <td className="px-4 py-3 text-zinc-600">
@@ -100,6 +128,14 @@ export default async function CotizacionesPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {c.estado !== "enviada" && (
+                          <a
+                            href={`/cotizaciones?borrador=${c.id}`}
+                            className={`chip ${c.id === borrador?.id ? "ring-2 ring-brand-500" : ""}`}
+                          >
+                            {c.id === borrador?.id ? "Editando" : "Retomar"}
+                          </a>
+                        )}
                         <a
                           href={`/cotizaciones/${c.id}/pdf`}
                           target="_blank"

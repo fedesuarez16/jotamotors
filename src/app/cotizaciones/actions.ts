@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { getSupabaseServer } from "@/lib/supabase";
 import { sendMail } from "@/lib/mailer";
 import { buildCotizacionPdf } from "@/lib/cotizacion-pdf";
-import { formatCLP, numeroCotizacion, validarCotizacion } from "@/lib/cotizacion";
+import { formatCLP, normalizarBorrador, numeroCotizacion, validarCotizacion } from "@/lib/cotizacion";
 import type { Cliente, Cotizacion, CotizacionInput } from "@/lib/types";
 
 export type ActionResult =
@@ -99,22 +99,43 @@ async function marcarResultado(id: string, error: string | null) {
     .eq("id", id);
 }
 
-/** Guarda la cotización y, si `enviar`, genera el PDF y lo manda por mail. */
+/** Inserta o, si viene `id`, actualiza un borrador (nunca toca cotizaciones ya enviadas). */
+async function persistir(
+  id: string | undefined,
+  value: CotizacionInput & { total: number }
+): Promise<{ ok: true; cot: Cotizacion } | { ok: false; error: string }> {
+  const supabase = getSupabaseServer();
+  const query = id
+    ? supabase.from("cotizaciones").update(value).eq("id", id).neq("estado", "enviada")
+    : supabase.from("cotizaciones").insert(value);
+  const { data, error } = await query.select("*").maybeSingle();
+  if (error) return { ok: false, error: error.message };
+  if (!data) return { ok: false, error: "La cotización no existe o ya fue enviada" };
+  return { ok: true, cot: data as Cotizacion };
+}
+
+/**
+ * Guarda la cotización y, si `enviar`, genera el PDF y lo manda por mail.
+ * Como borrador acepta datos incompletos; para enviar exige todo completo.
+ * Con `id` actualiza el borrador existente en vez de crear uno nuevo.
+ */
 export async function guardarCotizacionAction(
   input: CotizacionInput,
-  enviar: boolean
+  enviar: boolean,
+  id?: string
 ): Promise<ActionResult> {
-  const valid = validarCotizacion(input);
-  if (!valid.ok) return valid;
+  let value: CotizacionInput & { total: number };
+  if (enviar) {
+    const valid = validarCotizacion(input);
+    if (!valid.ok) return valid;
+    value = valid.value;
+  } else {
+    value = normalizarBorrador(input);
+  }
 
-  const supabase = getSupabaseServer();
-  const { data, error } = await supabase
-    .from("cotizaciones")
-    .insert(valid.value)
-    .select("*")
-    .single();
-  if (error) return { ok: false, error: error.message };
-  const cot = data as Cotizacion;
+  const saved = await persistir(id, value);
+  if (!saved.ok) return saved;
+  const cot = saved.cot;
 
   if (!enviar) {
     revalidatePath("/cotizaciones");
@@ -135,6 +156,10 @@ export async function enviarCotizacionAction(id: string): Promise<ActionResult> 
   const { data, error } = await supabase.from("cotizaciones").select("*").eq("id", id).single();
   if (error) return { ok: false, error: error.message };
   const cot = data as Cotizacion;
+
+  // Un borrador puede estar incompleto: no se manda hasta que lo completen.
+  const valid = validarCotizacion(cot);
+  if (!valid.ok) return { ok: false, id, error: `Borrador incompleto: ${valid.error}` };
 
   const mailError = await enviarPorMail(cot);
   await marcarResultado(cot.id, mailError);

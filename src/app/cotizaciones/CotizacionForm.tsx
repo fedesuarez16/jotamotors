@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { calcularTotal, formatCLP, numeroCotizacion } from "@/lib/cotizacion";
+import type { Cotizacion } from "@/lib/types";
 import { buscarClientesAction, guardarCotizacionAction, type ClienteSugerido } from "./actions";
 
 interface ItemRow {
@@ -31,7 +32,7 @@ const inputCls =
   "input py-2.5";
 const labelCls = "label";
 
-function nombreCompleto(c: ClienteSugerido): string {
+function nombreCompleto(c: Partial<ClienteSugerido>): string {
   return [c.nombre, c.apellido, c.apellido_materno].filter(Boolean).join(" ");
 }
 
@@ -170,19 +171,35 @@ function CantidadStepper({ value, onChange }: { value: number; onChange: (v: num
 
 /* ---------- Formulario ---------- */
 
-export function CotizacionForm() {
+function itemsIniciales(inicial: Cotizacion | null | undefined): ItemRow[] {
+  if (!inicial?.items?.length) return [emptyItem()];
+  return inicial.items.map((it) => ({
+    key: nextKey++,
+    descripcion: it.descripcion,
+    cantidad: it.cantidad,
+    precio: it.precio_unitario ? String(it.precio_unitario) : "",
+  }));
+}
+
+export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<"enviar" | "guardar" | null>(null);
-  const [cliente, setCliente] = useState<ClienteSugerido | null>(null);
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [vehiculo, setVehiculo] = useState("");
-  const [patente, setPatente] = useState("");
-  const [items, setItems] = useState<ItemRow[]>([emptyItem()]);
-  const [validez, setValidez] = useState(15);
-  const [observaciones, setObservaciones] = useState("");
+  const [borrador, setBorrador] = useState<{ id: string; numero: number } | null>(
+    inicial ? { id: inicial.id, numero: inicial.numero } : null
+  );
+  // Solo guardamos el id: alcanza para mantener el vínculo al reabrir el borrador.
+  const [cliente, setCliente] = useState<Pick<ClienteSugerido, "id"> & Partial<ClienteSugerido> | null>(
+    inicial?.cliente_id ? { id: inicial.cliente_id, nombre: inicial.cliente_nombre, email: inicial.cliente_email } : null
+  );
+  const [nombre, setNombre] = useState(inicial?.cliente_nombre ?? "");
+  const [email, setEmail] = useState(inicial?.cliente_email ?? "");
+  const [telefono, setTelefono] = useState(inicial?.cliente_telefono ?? "");
+  const [vehiculo, setVehiculo] = useState(inicial?.vehiculo ?? "");
+  const [patente, setPatente] = useState(inicial?.patente ?? "");
+  const [items, setItems] = useState<ItemRow[]>(() => itemsIniciales(inicial));
+  const [validez, setValidez] = useState(inicial?.validez_dias ?? 15);
+  const [observaciones, setObservaciones] = useState(inicial?.observaciones ?? "");
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const lastDescRef = useRef<HTMLInputElement>(null);
   const focusLast = useRef(false);
@@ -208,6 +225,9 @@ export function CotizacionForm() {
     { ok: itemsValidos.length > 0, label: "Al menos un ítem" },
   ];
   const listo = checks.every((c) => c.ok);
+  const hayAlgo =
+    [nombre, email, telefono, vehiculo, patente, observaciones].some((v) => v.trim() !== "") ||
+    items.some((it) => it.descripcion.trim() || it.precio);
 
   function updateItem(key: number, patch: Partial<ItemRow>) {
     setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -223,6 +243,7 @@ export function CotizacionForm() {
   }
 
   function reset() {
+    setBorrador(null);
     setCliente(null);
     setNombre("");
     setEmail("");
@@ -250,15 +271,27 @@ export function CotizacionForm() {
           validez_dias: validez,
           observaciones,
         },
-        enviar
+        enviar,
+        borrador?.id
       );
       if (res.ok) {
         const n = numeroCotizacion(res.numero);
-        setResult({ ok: true, message: res.enviada ? `${n} enviada a ${email}` : `${n} guardada como borrador` });
-        reset();
+        if (res.enviada) {
+          setResult({ ok: true, message: `${n} enviada a ${email}` });
+          reset();
+          router.replace("/cotizaciones");
+        } else {
+          // Seguimos editando el mismo borrador: los próximos guardados lo actualizan.
+          setBorrador({ id: res.id, numero: res.numero });
+          setResult({ ok: true, message: `${n} guardada como borrador` });
+          router.replace(`/cotizaciones?borrador=${res.id}`);
+        }
       } else {
         setResult({ ok: false, message: res.error });
-        if (res.id) reset(); // quedó guardada: se puede reenviar desde el listado
+        if (res.id) {
+          reset(); // quedó guardada: se puede reenviar desde el listado
+          router.replace("/cotizaciones");
+        }
       }
       setPendingAction(null);
       router.refresh();
@@ -412,7 +445,9 @@ export function CotizacionForm() {
         <div className="px-6 pt-6">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Resumen</p>
-            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-zinc-300">Nueva</span>
+            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-zinc-300">
+              {borrador ? `Borrador ${numeroCotizacion(borrador.numero)}` : "Nueva"}
+            </span>
           </div>
 
           <div className="mt-5 space-y-4 text-sm">
@@ -496,12 +531,27 @@ export function CotizacionForm() {
           </button>
           <button
             type="button"
-            disabled={isPending || !listo}
+            disabled={isPending || !hayAlgo}
             onClick={() => submit(false)}
             className="w-full rounded-xl py-2.5 text-sm font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {pendingAction === "guardar" ? "Guardando…" : "Guardar como borrador"}
+            {pendingAction === "guardar" ? "Guardando…" : borrador ? "Guardar cambios del borrador" : "Guardar como borrador"}
           </button>
+
+          {borrador && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => {
+                reset();
+                setResult(null);
+                router.replace("/cotizaciones");
+              }}
+              className="w-full rounded-xl py-2 text-xs font-medium text-zinc-500 transition hover:text-white disabled:opacity-40"
+            >
+              Empezar una nueva
+            </button>
+          )}
 
           {result && (
             <div

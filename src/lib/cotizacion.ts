@@ -54,6 +54,39 @@ export function validarCotizacion(input: CotizacionInput): ValidationResult {
   };
 }
 
+/**
+ * Normaliza un borrador: no exige campos completos para poder retomarlo después.
+ * Nombre y email son NOT NULL en la tabla, así que vacíos se guardan como "".
+ */
+export function normalizarBorrador(input: CotizacionInput): CotizacionInput & { total: number } {
+  const items: CotizacionItem[] = [];
+  for (const it of input.items ?? []) {
+    const descripcion = clean(it.descripcion);
+    const cantidad = Number(it.cantidad);
+    const precio_unitario = Math.round(Number(it.precio_unitario));
+    if (!descripcion && !precio_unitario) continue;
+    items.push({
+      descripcion: descripcion ?? "",
+      cantidad: Number.isFinite(cantidad) && cantidad > 0 ? cantidad : 1,
+      precio_unitario: Number.isFinite(precio_unitario) && precio_unitario > 0 ? precio_unitario : 0,
+    });
+  }
+  const validez_dias = Math.trunc(Number(input.validez_dias ?? 15));
+
+  return {
+    cliente_id: input.cliente_id ?? null,
+    cliente_nombre: clean(input.cliente_nombre) ?? "",
+    cliente_email: clean(input.cliente_email)?.toLowerCase() ?? "",
+    cliente_telefono: clean(input.cliente_telefono),
+    vehiculo: clean(input.vehiculo),
+    patente: clean(input.patente)?.toUpperCase() ?? null,
+    items,
+    validez_dias: Number.isFinite(validez_dias) && validez_dias >= 1 ? validez_dias : 15,
+    observaciones: clean(input.observaciones),
+    total: calcularTotal(items),
+  };
+}
+
 export function subtotalItem(it: CotizacionItem): number {
   return Math.round(it.cantidad * it.precio_unitario);
 }
