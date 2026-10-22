@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { calcularTotal, formatCLP, numeroCotizacion } from "@/lib/cotizacion";
+import { filtrarServicios } from "@/lib/servicios";
 import type { Cotizacion } from "@/lib/types";
 import { buscarClientesAction, guardarCotizacionAction, type ClienteSugerido } from "./actions";
 
@@ -15,15 +16,6 @@ interface ItemRow {
 
 let nextKey = 1;
 const emptyItem = (descripcion = ""): ItemRow => ({ key: nextKey++, descripcion, cantidad: 1, precio: "" });
-
-const SERVICIOS_RAPIDOS = [
-  "Cambio de aceite y filtro",
-  "Pastillas de freno",
-  "Mantención general",
-  "Carga aire acondicionado",
-  "Scanner / diagnóstico",
-  "Mano de obra",
-];
 
 const VALIDEZ_OPCIONES = [7, 15, 30];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -144,6 +136,98 @@ function ClienteBuscador({ onSelect }: { onSelect: (c: ClienteSugerido) => void 
               </li>
             );
           })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ServicioBuscador({ onSelect }: { onSelect: (servicio: string) => void }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [activo, setActivo] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const grupos = filtrarServicios(q);
+  const planos = grupos.flatMap((g) => g.servicios);
+
+  useEffect(() => setActivo(0), [q]);
+  useEffect(() => {
+    listRef.current?.querySelector(`[data-idx="${activo}"]`)?.scrollIntoView({ block: "nearest" });
+  }, [activo]);
+
+  function elegir(s: string) {
+    onSelect(s);
+    setQ("");
+    setOpen(false);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpen(true);
+      setActivo((i) => Math.min(i + 1, planos.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActivo((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (open && planos[activo]) elegir(planos[activo]);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  }
+
+  let idx = 0;
+  return (
+    <div className="relative mb-5">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"><IconSearch /></span>
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={onKeyDown}
+        placeholder="Buscar servicio (ej: pastillas, filtro, bujías)…"
+        className={`${inputCls} pl-9`}
+      />
+      {open && (
+        <ul
+          ref={listRef}
+          onMouseDown={(e) => e.preventDefault()} // evita el blur antes del click
+          className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 shadow-xl"
+        >
+          {planos.length === 0 && <li className="px-4 py-3 text-sm text-zinc-400">Sin coincidencias — escribilo a mano en el ítem.</li>}
+          {grupos.map((g) => (
+            <li key={g.categoria}>
+              <p className="px-4 pb-1 pt-2.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{g.categoria}</p>
+              <ul>
+                {g.servicios.map((s) => {
+                  const i = idx++;
+                  return (
+                    <li key={s}>
+                      <button
+                        type="button"
+                        data-idx={i}
+                        onMouseEnter={() => setActivo(i)}
+                        onClick={() => elegir(s)}
+                        className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm ${
+                          i === activo ? "bg-zinc-100 text-ink-900" : "text-zinc-700"
+                        }`}
+                      >
+                        <span className="text-zinc-400"><IconPlus /></span>
+                        {s}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
         </ul>
       )}
     </div>
@@ -355,18 +439,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
         </Card>
 
         <Card step={3} icon={<IconList />} title="Ítems" hint="Valores en CLP, sin IVA">
-          <div className="mb-5 flex flex-wrap gap-2">
-            {SERVICIOS_RAPIDOS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => addItem(s)}
-                className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-white hover:text-ink-900"
-              >
-                <IconPlus /> {s}
-              </button>
-            ))}
-          </div>
+          <ServicioBuscador onSelect={(s) => addItem(s)} />
 
           <div className="hidden grid-cols-[20px_minmax(0,1fr)_96px_128px_96px_32px] gap-2.5 px-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 md:grid">
             <span>#</span>
