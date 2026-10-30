@@ -36,7 +36,6 @@ async function fetchBorrador(id: string): Promise<Cotizacion | null> {
     .from("cotizaciones")
     .select("*")
     .eq("id", id)
-    .neq("estado", "enviada")
     .maybeSingle();
   return (data as Cotizacion | null) ?? null;
 }
@@ -61,15 +60,19 @@ export default async function CotizacionesPage({
     <div className="page space-y-10">
       <div>
         <h2 className="page-title">
-          {borrador ? `Retomando ${numeroCotizacion(borrador.numero)}` : "Nueva cotización"}
+          {borrador
+            ? `${borrador.estado === "enviada" ? "Editando" : "Retomando"} ${numeroCotizacion(borrador.numero)}`
+            : "Nueva cotización"}
         </h2>
         <p className="page-subtitle">
-          {borrador
+          {borrador?.estado === "enviada"
+            ? "Esta cotización ya se envió. Corregila y reenviala: el cliente recibe el PDF actualizado con el mismo número."
+            : borrador
             ? "Seguí completando el borrador. Podés guardarlo de nuevo o enviarlo cuando esté listo."
             : "Completá los datos, revisá el resumen y enviala por mail con el PDF adjunto. Si no terminás, guardala como borrador."}
         </p>
         {borradorId && !borrador && (
-          <p className="mt-2 text-sm text-red-600">Ese borrador no existe o ya fue enviado.</p>
+          <p className="mt-2 text-sm text-red-600">Esa cotización no existe.</p>
         )}
       </div>
 
@@ -128,14 +131,12 @@ export default async function CotizacionesPage({
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {c.estado !== "enviada" && (
-                          <a
-                            href={`/cotizaciones?borrador=${c.id}`}
-                            className={`chip ${c.id === borrador?.id ? "ring-2 ring-brand-500" : ""}`}
-                          >
-                            {c.id === borrador?.id ? "Editando" : "Retomar"}
-                          </a>
-                        )}
+                        <a
+                          href={`/cotizaciones?borrador=${c.id}`}
+                          className={`chip ${c.id === borrador?.id ? "ring-2 ring-brand-500" : ""}`}
+                        >
+                          {c.id === borrador?.id ? "Editando" : c.estado === "enviada" ? "Editar" : "Retomar"}
+                        </a>
                         <a
                           href={`/cotizaciones/${c.id}/pdf`}
                           target="_blank"

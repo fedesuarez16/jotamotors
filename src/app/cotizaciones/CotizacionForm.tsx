@@ -269,8 +269,8 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<"enviar" | "guardar" | null>(null);
-  const [borrador, setBorrador] = useState<{ id: string; numero: number } | null>(
-    inicial ? { id: inicial.id, numero: inicial.numero } : null
+  const [borrador, setBorrador] = useState<{ id: string; numero: number; enviada: boolean } | null>(
+    inicial ? { id: inicial.id, numero: inicial.numero, enviada: inicial.estado === "enviada" } : null
   );
   // Solo guardamos el id: alcanza para mantener el vínculo al reabrir el borrador.
   const [cliente, setCliente] = useState<Pick<ClienteSugerido, "id"> & Partial<ClienteSugerido> | null>(
@@ -366,7 +366,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
           router.replace("/cotizaciones");
         } else {
           // Seguimos editando el mismo borrador: los próximos guardados lo actualizan.
-          setBorrador({ id: res.id, numero: res.numero });
+          setBorrador({ id: res.id, numero: res.numero, enviada: false });
           setResult({ ok: true, message: `${n} guardada como borrador` });
           router.replace(`/cotizaciones?borrador=${res.id}`);
         }
@@ -519,7 +519,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Resumen</p>
             <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-zinc-300">
-              {borrador ? `Borrador ${numeroCotizacion(borrador.numero)}` : "Nueva"}
+              {borrador ? `${borrador.enviada ? "Enviada" : "Borrador"} ${numeroCotizacion(borrador.numero)}` : "Nueva"}
             </span>
           </div>
 
@@ -600,7 +600,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             <IconSend />
-            {pendingAction === "enviar" ? "Enviando…" : "Enviar por mail"}
+            {pendingAction === "enviar" ? "Enviando…" : borrador?.enviada ? "Reenviar por mail" : "Enviar por mail"}
           </button>
           <button
             type="button"
@@ -608,7 +608,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
             onClick={() => submit(false)}
             className="w-full rounded-xl py-2.5 text-sm font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {pendingAction === "guardar" ? "Guardando…" : borrador ? "Guardar cambios del borrador" : "Guardar como borrador"}
+            {pendingAction === "guardar" ? "Guardando…" : borrador?.enviada ? "Guardar cambios sin reenviar" : borrador ? "Guardar cambios del borrador" : "Guardar como borrador"}
           </button>
 
           {borrador && (

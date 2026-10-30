@@ -99,25 +99,26 @@ async function marcarResultado(id: string, error: string | null) {
     .eq("id", id);
 }
 
-/** Inserta o, si viene `id`, actualiza un borrador (nunca toca cotizaciones ya enviadas). */
+/** Inserta o, si viene `id`, actualiza la cotización (borrador o ya enviada, para corregirla y reenviarla). */
 async function persistir(
   id: string | undefined,
-  value: CotizacionInput & { total: number }
+  value: CotizacionInput & { total: number } & Partial<Pick<Cotizacion, "estado" | "error">>
 ): Promise<{ ok: true; cot: Cotizacion } | { ok: false; error: string }> {
   const supabase = getSupabaseServer();
   const query = id
-    ? supabase.from("cotizaciones").update(value).eq("id", id).neq("estado", "enviada")
+    ? supabase.from("cotizaciones").update(value).eq("id", id)
     : supabase.from("cotizaciones").insert(value);
   const { data, error } = await query.select("*").maybeSingle();
   if (error) return { ok: false, error: error.message };
-  if (!data) return { ok: false, error: "La cotización no existe o ya fue enviada" };
+  if (!data) return { ok: false, error: "La cotización no existe" };
   return { ok: true, cot: data as Cotizacion };
 }
 
 /**
  * Guarda la cotización y, si `enviar`, genera el PDF y lo manda por mail.
  * Como borrador acepta datos incompletos; para enviar exige todo completo.
- * Con `id` actualiza el borrador existente en vez de crear uno nuevo.
+ * Con `id` actualiza la cotización existente en vez de crear una nueva. Si era una
+ * enviada y se guarda sin enviar, vuelve a borrador: su contenido ya no es el que recibió el cliente.
  */
 export async function guardarCotizacionAction(
   input: CotizacionInput,
@@ -133,7 +134,7 @@ export async function guardarCotizacionAction(
     value = normalizarBorrador(input);
   }
 
-  const saved = await persistir(id, value);
+  const saved = await persistir(id, enviar ? value : { ...value, estado: "borrador", error: null });
   if (!saved.ok) return saved;
   const cot = saved.cot;
 
