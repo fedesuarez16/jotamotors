@@ -122,7 +122,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             <span className="font-semibold text-ink-900">{totalLeads}</span>{" "}
             {totalLeads === 1 ? "lead" : "leads"}
             {search ? ` para "${search}"` : ""}
-            <span className="text-zinc-400"> · Tocá una fila para ver el detalle</span>
+            <span className="text-zinc-400"> · Tocá un lead para ver el detalle</span>
           </p>
           <LeadsTable leads={leads} followupIds={followupIds} />
         </>

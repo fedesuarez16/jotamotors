@@ -59,15 +59,15 @@ const IconX = () => <Svg size={14}><line x1="18" y1="6" x2="6" y2="18" /><line x
 function Card({ step, icon, title, hint, children }: { step: number; icon: React.ReactNode; title: string; hint?: string; children: React.ReactNode }) {
   return (
     <section className="card">
-      <header className="flex items-center gap-3 border-b border-zinc-100 px-6 py-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-900 text-white">{icon}</span>
-        <div className="flex-1">
+      <header className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3.5 sm:px-6 sm:py-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ink-900 text-white">{icon}</span>
+        <div className="min-w-0 flex-1">
           <h3 className="section-title">{title}</h3>
           {hint && <p className="text-xs text-zinc-500">{hint}</p>}
         </div>
         <span className="font-display text-2xl font-semibold tabular-nums text-zinc-200">0{step}</span>
       </header>
-      <div className="p-6">{children}</div>
+      <div className="p-4 sm:p-6">{children}</div>
     </section>
   );
 }
@@ -456,7 +456,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
               return (
                 <div
                   key={it.key}
-                  className="group grid grid-cols-[minmax(0,1fr)_104px] items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 md:grid-cols-[20px_minmax(0,1fr)_96px_128px_96px_32px] md:gap-2.5 md:border-0 md:bg-transparent md:p-1"
+                  className="group grid grid-cols-2 items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 md:grid-cols-[20px_minmax(0,1fr)_96px_128px_96px_32px] md:gap-2.5 md:border-0 md:bg-transparent md:p-1"
                 >
                   <span className="hidden text-xs tabular-nums text-zinc-400 md:block">{i + 1}</span>
                   <input
@@ -477,7 +477,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
                       className={`${inputCls} pl-7 text-right tabular-nums`}
                     />
                   </div>
-                  <span className="text-right text-sm font-semibold tabular-nums text-ink-900">{formatCLP(sub)}</span>
+                  <span className="text-sm font-semibold tabular-nums text-ink-900 md:text-right">{formatCLP(sub)}</span>
                   <button
                     type="button"
                     aria-label="Quitar ítem"
@@ -513,7 +513,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
       </div>
 
       {/* Resumen */}
-      <aside className="sticky top-20 overflow-hidden rounded-2xl bg-ink-900 text-zinc-300 shadow-xl">
+      <aside className="overflow-hidden xl:sticky xl:top-20 rounded-2xl bg-ink-900 text-zinc-300 shadow-xl">
         <div className="m-stripe h-1 w-full" />
         <div className="px-6 pt-6">
           <div className="flex items-center justify-between">

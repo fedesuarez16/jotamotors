@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { logoutAction } from "@/app/login/actions";
 
 interface NavItem {
@@ -89,13 +90,38 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+// En mobile la sidebar es un drawer; el Topbar lo abre disparando este evento.
+export const TOGGLE_SIDEBAR_EVENT = "jm:toggle-sidebar";
+
 export function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const toggle = () => setOpen((o) => !o);
+    window.addEventListener(TOGGLE_SIDEBAR_EVENT, toggle);
+    return () => window.removeEventListener(TOGGLE_SIDEBAR_EVENT, toggle);
+  }, []);
+
+  // Cerrar el drawer al navegar.
+  useEffect(() => setOpen(false), [pathname]);
 
   if (pathname === "/login") return null;
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col bg-ink-900 text-zinc-300">
+    <>
+    {open && (
+      <div
+        aria-hidden
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+      />
+    )}
+    <aside
+      className={`fixed inset-y-0 left-0 z-40 flex h-dvh w-64 shrink-0 flex-col bg-ink-900 text-zinc-300 transition-transform duration-200 lg:sticky lg:top-0 lg:translate-x-0 ${
+        open ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       <div className="px-5 pb-5 pt-6">
         <Link href="/" className="flex items-center gap-3">
           <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/10">
@@ -173,5 +199,6 @@ export function Sidebar() {
         </form>
       </div>
     </aside>
+    </>
   );
 }

@@ -57,7 +57,7 @@ export default async function CotizacionesPage({
   const borrador = borradorId ? await fetchBorrador(borradorId) : null;
 
   return (
-    <div className="page space-y-10">
+    <div className="page space-y-8 sm:space-y-10">
       <div>
         <h2 className="page-title">
           {borrador
@@ -93,7 +93,47 @@ export default async function CotizacionesPage({
             <p className="text-sm text-zinc-500">Todavía no hay cotizaciones. La primera que guardes aparece acá.</p>
           </div>
         ) : (
-          <div className="card overflow-x-auto">
+          <>
+          {/* Mobile: tarjetas */}
+          <ul className="space-y-3 md:hidden">
+            {cotizaciones.map((c) => (
+              <li key={c.id} className={`card p-4 ${c.id === borrador?.id ? "ring-2 ring-brand-500" : ""}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs text-zinc-500">{numeroCotizacion(c.numero)}</p>
+                    <p className="truncate font-medium text-ink-900">
+                      {c.cliente_nombre || <span className="text-zinc-400">Sin nombre</span>}
+                    </p>
+                    {c.cliente_email && <p className="truncate text-xs text-zinc-400">{c.cliente_email}</p>}
+                  </div>
+                  <span className={`badge shrink-0 ${ESTADO_COLORS[c.estado]}`} title={c.error ?? undefined}>
+                    {ESTADO_LABELS[c.estado]}
+                  </span>
+                </div>
+                {(c.vehiculo || c.patente) && (
+                  <p className="mt-2 truncate text-sm text-zinc-600">{[c.vehiculo, c.patente].filter(Boolean).join(" · ")}</p>
+                )}
+                <div className="mt-3 flex items-baseline justify-between gap-3">
+                  <span className="font-semibold tabular-nums text-ink-900">{formatCLP(c.total)}</span>
+                  <span className="text-xs text-zinc-400">
+                    {new Date(c.created_at).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" })}
+                  </span>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3">
+                  <a href={`/cotizaciones?borrador=${c.id}`} className="chip">
+                    {c.id === borrador?.id ? "Editando" : c.estado === "enviada" ? "Editar" : "Retomar"}
+                  </a>
+                  <a href={`/cotizaciones/${c.id}/pdf`} target="_blank" rel="noreferrer" className="chip">
+                    PDF
+                  </a>
+                  <EnviarButton id={c.id} label={c.estado === "enviada" ? "Reenviar" : "Enviar"} />
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop: tabla */}
+          <div className="card hidden overflow-x-auto md:block">
             <table className="table">
               <thead>
                 <tr>
@@ -153,6 +193,7 @@ export default async function CotizacionesPage({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>

@@ -102,7 +102,81 @@ export function LeadsTable({ leads, followupIds }: LeadsTableProps) {
     <div className="flex flex-col gap-3">
       <BulkActionsBar selectedIds={Array.from(selected)} onDone={clear} />
 
-      <div className="card overflow-x-auto">
+      {/* Mobile: tarjetas */}
+      <div className="md:hidden">
+        <label className="mb-2 flex items-center gap-2 px-1 text-xs font-medium text-zinc-500">
+          <input
+            type="checkbox"
+            checked={allChecked}
+            onChange={toggleAll}
+            className="h-4 w-4 rounded border-zinc-300 accent-brand-600"
+          />
+          Seleccionar todos
+        </label>
+        <ul className="space-y-3">
+          {leads.map((lead) => {
+            const isSelected = selected.has(lead.id);
+            const inFollowup = followupSet.has(lead.id);
+            const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+            return (
+              <li
+                key={lead.id}
+                onClick={() => setSidebarLeadId(lead.id)}
+                className={`card cursor-pointer p-4 ${isSelected ? "border-brand-200 bg-brand-50/70" : ""}`}
+              >
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onClick={stop}
+                    onChange={() => toggleOne(lead.id)}
+                    aria-label={`Seleccionar ${lead.name ?? formatPhone(lead.phone)}`}
+                    className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-300 accent-brand-600"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate font-medium text-ink-900">
+                        {lead.name ?? <span className="text-zinc-400">Sin nombre</span>}
+                      </span>
+                      {inFollowup && (
+                        <span className="shrink-0 rounded-full bg-ink-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+                          Seg.
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-mono text-[13px] text-zinc-500">{formatPhone(lead.phone)}</p>
+                  </div>
+                  <div onClick={stop} className="shrink-0">
+                    <ChatStateToggle phone={lead.phone} currentState={lead.estado_chat} />
+                  </div>
+                </div>
+
+                <div onClick={stop} className="mt-3 flex flex-wrap items-center gap-2">
+                  <InlineSelect leadId={lead.id} field="status" current={lead.status} options={STATUS_OPTIONS} />
+                  <InlineSelect leadId={lead.id} field="source" current={lead.source} options={SOURCE_OPTIONS} />
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3 text-xs text-zinc-500">
+                  <span>
+                    <span className="font-medium tabular-nums text-ink-900">{lead.message_count}</span> mensajes
+                  </span>
+                  <span>Último: {formatDate(lead.last_seen_at)}</span>
+                </div>
+
+                <div onClick={stop} className="mt-3 flex items-center gap-2 border-t border-zinc-100 pt-3">
+                  <Link href={`/chats?lead=${lead.id}`} className="btn btn-secondary btn-sm flex-1">
+                    Ver chat
+                  </Link>
+                  <DeleteLeadButton id={lead.id} label={lead.name ?? formatPhone(lead.phone)} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* Desktop: tabla */}
+      <div className="card hidden overflow-x-auto md:block">
         <table className="table">
           <thead>
             <tr>

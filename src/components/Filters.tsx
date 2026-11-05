@@ -167,8 +167,8 @@ export function SearchBar() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-1 items-center gap-2" role="search">
-      <div className="relative flex-1">
+    <form onSubmit={onSubmit} className="flex grow basis-full items-center gap-2 sm:basis-0" role="search">
+      <div className="relative min-w-0 flex-1">
         <svg
           aria-hidden
           xmlns="http://www.w3.org/2000/svg"
