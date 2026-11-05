@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logoutAction } from "@/app/login/actions";
 
 interface NavItem {
   href: string;
@@ -91,6 +92,8 @@ function isActive(pathname: string, href: string): boolean {
 export function Sidebar() {
   const pathname = usePathname();
 
+  if (pathname === "/login") return null;
+
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col bg-ink-900 text-zinc-300">
       <div className="px-5 pb-5 pt-6">
@@ -160,6 +163,14 @@ export function Sidebar() {
           </span>
           <span className="text-xs text-zinc-500">Sistema activo</span>
         </div>
+        <form action={logoutAction} className="mt-3">
+          <button
+            type="submit"
+            className="text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-200"
+          >
+            Cerrar sesión
+          </button>
+        </form>
       </div>
     </aside>
   );

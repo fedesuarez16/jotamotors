@@ -35,6 +35,8 @@ export function Topbar() {
   const meta = getPageMeta(pathname);
   const dateStr = useFormattedDate();
 
+  if (pathname === "/login") return null;
+
   return (
     <header className="sticky top-0 z-20 shrink-0 border-b border-zinc-200/80 bg-white/85 backdrop-blur-md">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
