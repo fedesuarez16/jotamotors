@@ -33,11 +33,14 @@ function initials(lead: Lead): string {
 interface ChatListProps {
   leads: Lead[];
   activeId: string | null;
+  mobileHidden?: boolean;
 }
 
-export function ChatList({ leads, activeId }: ChatListProps) {
+export function ChatList({ leads, activeId, mobileHidden = false }: ChatListProps) {
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-r border-zinc-200/80 bg-white">
+    <aside
+      className={`${mobileHidden ? "hidden md:flex" : "flex"} w-full shrink-0 flex-col border-r border-zinc-200/80 bg-white md:w-80`}
+    >
       <div className="border-b border-zinc-200 px-4 py-4">
         <h2 className="section-title">Conversaciones</h2>
         <p className="mt-0.5 text-xs text-zinc-500">

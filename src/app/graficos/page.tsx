@@ -120,7 +120,7 @@ export default async function GraficosPage() {
 
   return (
     <div className="page">
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
         <StatCard label="Leads totales" value={leads.length} />
         <StatCard
           label="Últimos 30 días"

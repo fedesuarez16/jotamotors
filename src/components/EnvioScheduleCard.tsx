@@ -58,7 +58,7 @@ export function EnvioScheduleCard({ sendHour }: EnvioScheduleCardProps) {
           value={hour}
           onChange={(e) => setHour(Number(e.target.value))}
           disabled={pending}
-          className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-ink-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
+          className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-base font-medium text-ink-900 sm:text-xs shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
         >
           {hours.map((h) => (
             <option key={h} value={h}>

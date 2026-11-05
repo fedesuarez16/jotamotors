@@ -23,7 +23,49 @@ export function EnviosTable({ rows }: { rows: EnvioMasivoHistorial[] }) {
   }
 
   return (
-    <div className="card overflow-x-auto">
+    <>
+    {/* Mobile: tarjetas */}
+    <ul className="space-y-3 md:hidden">
+      {rows.map((row) => (
+        <li key={row.id} className="card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <code className="truncate rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-ink-900 ring-1 ring-inset ring-zinc-200">
+              {row.template_name}
+            </code>
+            <span className="shrink-0 text-xs text-zinc-500">{formatDate(row.created_at)}</span>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg bg-zinc-50 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Total</p>
+              <p className="tabular-nums text-ink-900">{row.total_targets}</p>
+            </div>
+            <div className="rounded-lg bg-zinc-50 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Enviados</p>
+              <p className="font-medium tabular-nums text-emerald-700">{row.sent}</p>
+            </div>
+            <div className="rounded-lg bg-zinc-50 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Fallidos</p>
+              <p className={`tabular-nums ${row.failed > 0 ? "font-medium text-red-600" : "text-zinc-400"}`}>{row.failed}</p>
+            </div>
+          </div>
+          {row.failed > 0 && (
+            <details className="mt-3 text-xs">
+              <summary className="cursor-pointer select-none text-zinc-500">Ver fallos ({row.failed})</summary>
+              <ul className="mt-1.5 space-y-1 pl-2">
+                {row.failures.map((f, i) => (
+                  <li key={i} className="break-words text-zinc-600">
+                    <span className="font-mono">{f.phone}</span> — <span className="text-red-600">{f.error}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </li>
+      ))}
+    </ul>
+
+    {/* Desktop: tabla */}
+    <div className="card hidden overflow-x-auto md:block">
       <table className="table">
         <thead>
           <tr>
@@ -80,6 +122,7 @@ export function EnviosTable({ rows }: { rows: EnvioMasivoHistorial[] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 

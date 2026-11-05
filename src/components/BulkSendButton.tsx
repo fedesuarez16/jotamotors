@@ -133,7 +133,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
             )
           }
           title={selectedTemplate?.bodyText}
-          className="max-w-56 rounded-lg border border-white/15 bg-ink-800 px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:outline-none"
+          className="max-w-56 rounded-lg border border-white/15 bg-ink-800 px-2 py-1.5 text-base text-white sm:text-xs focus:border-brand-500 focus:outline-none"
         >
           {templates.map((t) => (
             <option key={t.name} value={t.name} title={t.bodyText}>
@@ -150,7 +150,7 @@ export function BulkSendButton({ selectedIds }: BulkSendButtonProps) {
           min={nowLocalValue()}
           onChange={(e) => setScheduleAt(e.target.value)}
           title="Dejalo vacío para enviar ahora"
-          className="rounded-lg border border-white/15 bg-ink-800 px-2 py-1 text-xs text-white focus:border-brand-500 focus:outline-none"
+          className="rounded-lg border border-white/15 bg-ink-800 px-2 py-1 text-base text-white sm:text-xs focus:border-brand-500 focus:outline-none"
         />
         <button
           type="button"

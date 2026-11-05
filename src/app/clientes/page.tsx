@@ -65,13 +65,13 @@ export default async function ClientesPage({ searchParams }: PageProps) {
   return (
     <div className="page">
       <div className="card mb-4 flex flex-wrap items-center justify-between gap-4 p-3">
-        <form action="/clientes" className="flex items-center gap-2">
+        <form action="/clientes" className="flex w-full items-center gap-2 sm:w-auto">
           <input
             type="search"
             name="q"
             defaultValue={q}
             placeholder="Buscar nombre, email o teléfono…"
-            className="input w-72"
+            className="input min-w-0 flex-1 sm:w-72 sm:flex-none"
           />
           <button
             type="submit"
@@ -101,7 +101,35 @@ export default async function ClientesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <>
-          <div className="card overflow-x-auto">
+          {/* Mobile: tarjetas */}
+          <ul className="space-y-3 md:hidden">
+            {clientes.map((c) => (
+              <li key={c.id} className="card p-4">
+                <p className="truncate font-medium text-ink-900">
+                  {[c.nombre, c.apellido, c.apellido_materno].filter(Boolean).join(" ") || (
+                    <span className="text-zinc-400">Sin nombre</span>
+                  )}
+                </p>
+                {c.email && <p className="truncate text-sm text-zinc-600">{c.email}</p>}
+                {c.telefono && <p className="font-mono text-xs text-zinc-500">{c.telefono}</p>}
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">
+                  {c.estado_email && <span>Email: {c.estado_email}</span>}
+                  {c.fuente && <span>Fuente: {c.fuente}</span>}
+                  {c.etiquetas && <span className="truncate">{c.etiquetas}</span>}
+                </div>
+                {(c.ultima_actividad || c.ultima_actividad_at) && (
+                  <p className="mt-2 border-t border-zinc-100 pt-2 text-xs text-zinc-500">
+                    {c.ultima_actividad ?? "Actividad"}
+                    {c.ultima_actividad_at &&
+                      ` · ${new Date(c.ultima_actividad_at).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" })}`}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop: tabla */}
+          <div className="card hidden overflow-x-auto md:block">
             <table className="table">
               <thead>
                 <tr>
@@ -146,7 +174,7 @@ export default async function ClientesPage({ searchParams }: PageProps) {
             </table>
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500">
             <span className="tabular-nums">
               {count} clientes · página {page} de {totalPages}
             </span>

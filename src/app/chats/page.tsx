@@ -78,9 +78,10 @@ export default async function ChatsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 4rem)" }}>
-      <ChatList leads={leads} activeId={activeId} />
-      <ChatThread lead={activeLead} messages={messages} />
+    // Mobile: sin ?lead se ve la lista; con ?lead se ve solo la conversación.
+    <div className="flex" style={{ height: "calc(100dvh - 4rem)" }}>
+      <ChatList leads={leads} activeId={activeId} mobileHidden={!!requestedId} />
+      <ChatThread lead={activeLead} messages={messages} mobileHidden={!requestedId} />
     </div>
   );
 }

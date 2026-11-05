@@ -51,7 +51,38 @@ export function EnviosProgramadosTable({ rows }: { rows: EnvioProgramado[] }) {
           </p>
         </div>
       ) : (
-        <div className="card overflow-x-auto">
+        <>
+        {/* Mobile: tarjetas */}
+        <ul className="space-y-3 md:hidden">
+          {rows.map((row) => (
+            <li key={row.id} className="card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <code className="truncate rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-ink-900 ring-1 ring-inset ring-zinc-200">
+                  {row.template_name}
+                </code>
+                <span
+                  className={`badge shrink-0 ${
+                    row.status === "pendiente"
+                      ? "bg-brand-50 text-brand-700 ring-brand-200"
+                      : "bg-sky-50 text-sky-700 ring-sky-200"
+                  }`}
+                >
+                  {row.status}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-zinc-600">{formatDate(row.scheduled_at)}</p>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-xs text-zinc-500">
+                  <span className="font-medium tabular-nums text-ink-900">{row.lead_ids.length}</span> contactos
+                </span>
+                {row.status === "pendiente" && <CancelarButton id={row.id} />}
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {/* Desktop: tabla */}
+        <div className="card hidden overflow-x-auto md:block">
           <table className="table">
             <thead>
               <tr>
@@ -99,6 +130,7 @@ export function EnviosProgramadosTable({ rows }: { rows: EnvioProgramado[] }) {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </section>
   );

@@ -83,7 +83,7 @@ export default async function TurnosPage({ searchParams }: PageProps) {
             )}
           </div>
 
-          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-4">
             <StatCard label="Total" value={turnos.length} />
             <StatCard
               label="Pendientes"

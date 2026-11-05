@@ -200,6 +200,7 @@ function Section({
   empty,
   tone = "default",
   defaultOpen = true,
+  mobile,
   children,
 }: {
   title: string;
@@ -208,6 +209,8 @@ function Section({
   empty: string;
   tone?: "default" | "alert";
   defaultOpen?: boolean;
+  /** Tarjetas para mobile (< md); `children` es la tabla de desktop. */
+  mobile: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -258,9 +261,12 @@ function Section({
               <p className="text-sm text-zinc-500">{empty}</p>
             </div>
           ) : (
-            <div className="card overflow-x-auto">
-              {children}
-            </div>
+            <>
+              <ul className="space-y-3 md:hidden">{mobile}</ul>
+              <div className="card hidden overflow-x-auto md:block">
+                {children}
+              </div>
+            </>
           )}
         </>
       )}
@@ -297,6 +303,25 @@ export function SeguimientosTable({
         error={programadosError}
         empty="No hay seguimientos ni plantillas pendientes."
         defaultOpen
+        mobile={programados.map((row) => (
+          <li key={`${row.lead.id}-${row.tipo}`} className="card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <LeadCell lead={row.lead} />
+              <ChatStateBadge state={row.lead.estado_chat} />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <SeguimientoTipoBadge tipo={row.tipo} />
+              {hasOverride(row.lead) && <PersonalizadoBadge />}
+            </div>
+            <p className="mt-2 text-sm text-zinc-600">Se envía: {row.estimatedSendLabel}</p>
+            <p className="text-xs text-zinc-400">Último contacto {formatRelative(row.lead.last_seen_at)}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-1 border-t border-zinc-100 pt-3">
+              {row.tipo === "seguimiento_24h" ? <CancelButton phone={row.lead.phone} /> : null}
+              <EditarMensajeButton lead={row.lead} tipo={row.tipo} templates={templates} templatesError={templatesError} />
+              <VerChatLink leadId={row.lead.id} />
+            </div>
+          </li>
+        ))}
       >
         <table className="table">
           <thead>
@@ -358,6 +383,24 @@ export function SeguimientosTable({
         empty="Todo lo programado salió. Nada quedó sin enviar."
         tone="alert"
         defaultOpen
+        mobile={noEnviados.map((row) => (
+          <li key={`${row.lead.id}-${row.tipo}`} className="card border-red-200 bg-red-50/30 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <LeadCell lead={row.lead} />
+              <ChatStateBadge state={row.lead.estado_chat} />
+            </div>
+            <div className="mt-2">
+              <SeguimientoTipoBadge tipo={row.tipo} />
+            </div>
+            <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-red-700">
+              <AlertIcon />
+              Debía salir: {row.expectedLabel}
+            </p>
+            <div className="mt-3 border-t border-red-100 pt-3">
+              <VerChatLink leadId={row.lead.id} />
+            </div>
+          </li>
+        ))}
       >
         <table className="table">
           <thead>
@@ -408,6 +451,26 @@ export function SeguimientosTable({
         error={enviadosError}
         empty="Todavía no se envió ningún seguimiento ni plantilla."
         defaultOpen
+        mobile={enviados.map((row) => (
+          <li key={`${row.lead.id}-${row.tipo}`} className="card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <LeadCell lead={row.lead} />
+              <SourceBadge source={row.lead.source} />
+            </div>
+            <div className="mt-2">
+              <SeguimientoTipoBadge tipo={row.tipo} />
+            </div>
+            <p className="mt-2 inline-flex flex-wrap items-center gap-1.5 text-sm font-medium text-emerald-700">
+              <CheckIcon />
+              {formatAbsolute(row.sentAt)}
+              <span className="text-xs font-normal text-zinc-400">({formatRelative(row.sentAt)})</span>
+            </p>
+            <p className="text-xs text-zinc-400">Último contacto {formatAbsolute(row.lead.last_seen_at)}</p>
+            <div className="mt-3 border-t border-zinc-100 pt-3">
+              <VerChatLink leadId={row.lead.id} />
+            </div>
+          </li>
+        ))}
       >
         <table className="table">
           <thead>

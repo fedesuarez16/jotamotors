@@ -406,7 +406,7 @@ export default async function SeguimientosPage() {
 
   return (
     <div className="page">
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-8 grid grid-cols-3 gap-2 sm:gap-4">
         <StatCard label="Programados" value={programados.length} accent="brand" />
         <StatCard label="No enviados" value={noEnviados.length} accent="red" />
         <StatCard label="Enviados" value={enviados.length} accent="emerald" />

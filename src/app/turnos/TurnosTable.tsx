@@ -24,7 +24,7 @@ function EstadoSelect({ id, estado }: { id: string; estado: TurnoEstado }) {
     <select
       defaultValue={estado}
       disabled={isPending}
-      className="cursor-pointer rounded-lg border border-zinc-200 bg-white py-1 pl-2 pr-7 text-xs font-medium text-zinc-700 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
+      className="cursor-pointer rounded-lg border border-zinc-200 bg-white py-1 pl-2 pr-7 text-base font-medium sm:text-xs text-zinc-700 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
       onChange={(e) => {
         startTransition(async () => {
           await setTurnoEstadoAction(id, e.target.value);
@@ -49,7 +49,7 @@ function NotaInput({ id, nota }: { id: string; nota: string | null }) {
       defaultValue={nota ?? ""}
       placeholder="—"
       disabled={isPending}
-      className="w-full min-w-[140px] rounded-lg border border-transparent bg-transparent px-2 py-1 text-xs text-zinc-700 placeholder-zinc-300 transition hover:border-zinc-200 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
+      className="w-full min-w-[140px] rounded-lg border border-zinc-200 bg-transparent px-2 py-1 text-base sm:text-xs md:border-transparent text-zinc-700 placeholder-zinc-300 transition hover:border-zinc-200 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
       onBlur={(e) => {
         const value = e.target.value.trim();
         if (value === (nota ?? "")) return;
@@ -74,7 +74,42 @@ export function TurnosTable({ turnos }: { turnos: Turno[] }) {
   }
 
   return (
-    <div className="card overflow-x-auto">
+    <>
+    {/* Mobile: tarjetas */}
+    <ul className="space-y-3 md:hidden">
+      {turnos.map((turno) => (
+        <li key={turno.id} className="card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-ink-900">
+                {turno.leads?.name ?? <span className="font-mono text-sm text-zinc-500">{turno.phone}</span>}
+              </p>
+              {turno.leads?.name && <p className="font-mono text-xs text-zinc-400">{turno.phone}</p>}
+            </div>
+            <span className={`badge shrink-0 ${ESTADO_COLORS[turno.estado as TurnoEstado]}`}>
+              {ESTADO_LABELS[turno.estado as TurnoEstado]}
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-ink-900">
+            {[turno.dia_raw, turno.hora_raw].filter(Boolean).join(" · ")}
+          </p>
+          {turno.servicio && <p className="text-sm text-zinc-500">{turno.servicio}</p>}
+          <div className="mt-3 flex items-center gap-2 border-t border-zinc-100 pt-3">
+            <EstadoSelect id={turno.id} estado={turno.estado as TurnoEstado} />
+            <div className="min-w-0 flex-1">
+              <NotaInput id={turno.id} nota={turno.notas_operador} />
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-zinc-400">
+            Recibido{" "}
+            {new Date(turno.created_at).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" })}
+          </p>
+        </li>
+      ))}
+    </ul>
+
+    {/* Desktop: tabla */}
+    <div className="card hidden overflow-x-auto md:block">
       <table className="table">
         <thead>
           <tr>
@@ -144,5 +179,6 @@ export function TurnosTable({ turnos }: { turnos: Turno[] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }

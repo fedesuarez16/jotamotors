@@ -32,7 +32,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="card p-5">
+    <div className="card min-w-0 p-4 sm:p-5">
       <h2 className="section-title mb-4">
         {title}
       </h2>
@@ -43,7 +43,7 @@ function ChartCard({
 
 export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
       {/* Leads por día — ocupa toda la fila */}
       <div className="lg:col-span-2">
         <ChartCard title="Leads por día — últimos 30 días">
@@ -116,10 +116,6 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
                 outerRadius={90}
                 paddingAngle={3}
                 dataKey="value"
-                label={({ name, percent }) =>
-                  `${name ?? ""} ${(((percent as number | undefined) ?? 0) * 100).toFixed(0)}%`
-                }
-                labelLine={false}
               >
                 {sourceStats.map((_, i) => (
                   <Cell key={i} fill={SOURCE_COLORS[i % SOURCE_COLORS.length]} />
@@ -135,16 +131,21 @@ export function LeadsCharts({ dayStats, sourceStats, statusStats }: Props) {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 flex justify-center gap-4">
-          {sourceStats.map((s, i) => (
-            <div key={s.name} className="flex items-center gap-1.5 text-xs text-zinc-600">
-              <span
-                className="inline-block h-2.5 w-2.5 rounded-sm"
-                style={{ backgroundColor: SOURCE_COLORS[i] }}
-              />
-              {s.name}: <strong>{s.value}</strong>
-            </div>
-          ))}
+        {/* Los porcentajes van en la leyenda: las etiquetas externas del pie se cortaban en mobile. */}
+        <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
+          {sourceStats.map((s, i) => {
+            const total = sourceStats.reduce((acc, x) => acc + x.value, 0);
+            const pct = total ? Math.round((s.value / total) * 100) : 0;
+            return (
+              <div key={s.name} className="flex items-center gap-1.5 text-xs text-zinc-600">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-sm"
+                  style={{ backgroundColor: SOURCE_COLORS[i] }}
+                />
+                {s.name}: <strong>{s.value}</strong> <span className="text-zinc-400">({pct}%)</span>
+              </div>
+            );
+          })}
         </div>
       </ChartCard>
 
