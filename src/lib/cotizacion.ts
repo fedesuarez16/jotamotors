@@ -95,6 +95,21 @@ export function calcularTotal(items: CotizacionItem[]): number {
   return items.reduce((acc, it) => acc + subtotalItem(it), 0);
 }
 
+/** IVA Chile. Los precios de la cotización se cargan netos. */
+export const IVA_TASA = 0.19;
+
+export interface DesgloseIva {
+  neto: number;
+  iva: number;
+  total: number;
+}
+
+/** A partir del total neto (columna `total` en la tabla) calcula IVA y total final. */
+export function desgloseIva(neto: number): DesgloseIva {
+  const iva = Math.round(neto * IVA_TASA);
+  return { neto, iva, total: neto + iva };
+}
+
 export function formatCLP(value: number): string {
   return `$${Math.round(value).toLocaleString("es-CL")}`;
 }

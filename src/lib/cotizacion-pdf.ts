@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { Cotizacion } from "./types";
-import { formatCLP, numeroCotizacion, subtotalItem } from "./cotizacion";
+import { desgloseIva, formatCLP, numeroCotizacion, subtotalItem } from "./cotizacion";
 
 const A4: [number, number] = [595.28, 841.89];
 const MARGIN = 48;
@@ -157,10 +157,17 @@ export async function buildCotizacionPdf(cot: Cotizacion): Promise<Uint8Array> {
   }
 
   // Total
-  ensureSpace(40, false);
+  const { neto, iva, total } = desgloseIva(cot.total);
+  ensureSpace(80, false);
   y -= 10;
+  textRight("TOTAL NETO", cols.precio, y, regular, 10, MUTED);
+  textRight(formatCLP(neto), cols.subtotal - 8, y);
+  y -= 16;
+  textRight("IVA (19%)", cols.precio, y, regular, 10, MUTED);
+  textRight(formatCLP(iva), cols.subtotal - 8, y);
+  y -= 22;
   textRight("TOTAL", cols.precio, y, bold, 11);
-  textRight(formatCLP(cot.total), cols.subtotal - 8, y, bold, 13);
+  textRight(formatCLP(total), cols.subtotal - 8, y, bold, 13);
   y -= 34;
 
   // Observaciones

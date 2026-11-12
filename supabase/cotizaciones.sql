@@ -1,4 +1,4 @@
--- Cotizaciones generadas desde el CRM (PDF + envío por mail). Montos en CLP, sin IVA.
+-- Cotizaciones generadas desde el CRM (PDF + envío por mail). Montos en CLP. `total` = neto (sin IVA); IVA 19% se calcula en la app.
 -- Correr en el SQL editor de Supabase (después de clientes.sql).
 
 create table if not exists public.cotizaciones (

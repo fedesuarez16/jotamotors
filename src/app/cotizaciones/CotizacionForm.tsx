@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { calcularTotal, formatCLP, numeroCotizacion } from "@/lib/cotizacion";
+import { calcularTotal, desgloseIva, formatCLP, numeroCotizacion } from "@/lib/cotizacion";
 import { filtrarServicios } from "@/lib/servicios";
 import type { Cotizacion } from "@/lib/types";
 import { buscarClientesAction, guardarCotizacionAction, type ClienteSugerido } from "./actions";
@@ -301,7 +301,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
     precio_unitario: Number(it.precio || 0),
   }));
   const itemsValidos = parsedItems.filter((it) => it.descripcion.trim());
-  const total = calcularTotal(itemsValidos);
+  const { neto, iva, total } = desgloseIva(calcularTotal(itemsValidos));
 
   const checks = [
     { ok: nombre.trim() !== "", label: "Nombre del cliente" },
@@ -560,6 +560,16 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
         </div>
 
         <div className="mt-6 border-t border-white/10 px-6 py-5">
+          <dl className="mb-4 space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-zinc-500">Total neto</dt>
+              <dd className="tabular-nums text-zinc-300">{formatCLP(neto)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-zinc-500">IVA (19%)</dt>
+              <dd className="tabular-nums text-zinc-300">{formatCLP(iva)}</dd>
+            </div>
+          </dl>
           <p className="text-xs text-zinc-500">Total</p>
           <p className="mt-0.5 font-display text-4xl font-semibold tracking-tight tabular-nums text-white">{formatCLP(total)}</p>
 
