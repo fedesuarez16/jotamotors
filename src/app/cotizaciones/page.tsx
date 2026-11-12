@@ -114,7 +114,7 @@ export default async function CotizacionesPage({
                   <p className="mt-2 truncate text-sm text-zinc-600">{[c.vehiculo, c.patente].filter(Boolean).join(" · ")}</p>
                 )}
                 <div className="mt-3 flex items-baseline justify-between gap-3">
-                  <span className="font-semibold tabular-nums text-ink-900">{formatCLP(desgloseIva(c.total).total)}</span>
+                  <span className="font-semibold tabular-nums text-ink-900">{formatCLP(desgloseIva(c.total, c.con_iva).total)}</span>
                   <span className="text-xs text-zinc-400">
                     {new Date(c.created_at).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" })}
                   </span>
@@ -157,7 +157,7 @@ export default async function CotizacionesPage({
                     <td className="px-4 py-3 text-zinc-600">
                       {[c.vehiculo, c.patente].filter(Boolean).join(" · ") || <span className="text-zinc-300">—</span>}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 tabular-nums text-zinc-800">{formatCLP(desgloseIva(c.total).total)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums text-zinc-800">{formatCLP(desgloseIva(c.total, c.con_iva).total)}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`badge ${ESTADO_COLORS[c.estado]}`}

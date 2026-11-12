@@ -49,6 +49,7 @@ export function validarCotizacion(input: CotizacionInput): ValidationResult {
       items,
       validez_dias,
       observaciones: clean(input.observaciones),
+      con_iva: Boolean(input.con_iva),
       total: calcularTotal(items),
     },
   };
@@ -83,6 +84,7 @@ export function normalizarBorrador(input: CotizacionInput): CotizacionInput & { 
     items,
     validez_dias: Number.isFinite(validez_dias) && validez_dias >= 1 ? validez_dias : 15,
     observaciones: clean(input.observaciones),
+    con_iva: Boolean(input.con_iva),
     total: calcularTotal(items),
   };
 }
@@ -95,7 +97,7 @@ export function calcularTotal(items: CotizacionItem[]): number {
   return items.reduce((acc, it) => acc + subtotalItem(it), 0);
 }
 
-/** IVA Chile. Los precios de la cotización se cargan netos. */
+/** IVA Chile. Los precios de la cotización se cargan netos; el IVA es opcional por cotización. */
 export const IVA_TASA = 0.19;
 
 export interface DesgloseIva {
@@ -104,9 +106,9 @@ export interface DesgloseIva {
   total: number;
 }
 
-/** A partir del total neto (columna `total` en la tabla) calcula IVA y total final. */
-export function desgloseIva(neto: number): DesgloseIva {
-  const iva = Math.round(neto * IVA_TASA);
+/** A partir del total neto (columna `total` en la tabla) calcula IVA y total final. Sin IVA, total = neto. */
+export function desgloseIva(neto: number, conIva: boolean): DesgloseIva {
+  const iva = conIva ? Math.round(neto * IVA_TASA) : 0;
   return { neto, iva, total: neto + iva };
 }
 

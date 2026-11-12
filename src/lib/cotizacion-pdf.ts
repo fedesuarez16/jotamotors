@@ -157,15 +157,17 @@ export async function buildCotizacionPdf(cot: Cotizacion): Promise<Uint8Array> {
   }
 
   // Total
-  const { neto, iva, total } = desgloseIva(cot.total);
+  const { neto, iva, total } = desgloseIva(cot.total, cot.con_iva);
   ensureSpace(80, false);
   y -= 10;
-  textRight("TOTAL NETO", cols.precio, y, regular, 10, MUTED);
-  textRight(formatCLP(neto), cols.subtotal - 8, y);
-  y -= 16;
-  textRight("IVA (19%)", cols.precio, y, regular, 10, MUTED);
-  textRight(formatCLP(iva), cols.subtotal - 8, y);
-  y -= 22;
+  if (cot.con_iva) {
+    textRight("TOTAL NETO", cols.precio, y, regular, 10, MUTED);
+    textRight(formatCLP(neto), cols.subtotal - 8, y);
+    y -= 16;
+    textRight("IVA (19%)", cols.precio, y, regular, 10, MUTED);
+    textRight(formatCLP(iva), cols.subtotal - 8, y);
+    y -= 22;
+  }
   textRight("TOTAL", cols.precio, y, bold, 11);
   textRight(formatCLP(total), cols.subtotal - 8, y, bold, 13);
   y -= 34;

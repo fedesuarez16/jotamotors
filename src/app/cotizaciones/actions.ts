@@ -24,7 +24,7 @@ async function enviarPorMail(cot: Cotizacion): Promise<string | null> {
     const pdf = await buildCotizacionPdf(cot);
     const logo = await readFile(join(process.cwd(), "public", "logo-jotamotors.jpeg"));
     const saludo = `Hola ${cot.cliente_nombre},`;
-    const total = formatCLP(desgloseIva(cot.total).total);
+    const total = formatCLP(desgloseIva(cot.total, cot.con_iva).total);
     const vigencia = `${cot.validez_dias} días`;
     const cuerpo = `Te compartimos la cotización ${numero} por un total de ${total}. La propuesta es válida por ${vigencia}. Encontrarás el detalle completo en el PDF adjunto.`;
     await sendMail({

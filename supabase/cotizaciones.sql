@@ -1,4 +1,4 @@
--- Cotizaciones generadas desde el CRM (PDF + envío por mail). Montos en CLP. `total` = neto (sin IVA); IVA 19% se calcula en la app.
+-- Cotizaciones generadas desde el CRM (PDF + envío por mail). Montos en CLP. `total` = neto (sin IVA); IVA 19% opcional (con_iva), se calcula en la app.
 -- Correr en el SQL editor de Supabase (después de clientes.sql).
 
 create table if not exists public.cotizaciones (
@@ -24,5 +24,8 @@ create table if not exists public.cotizaciones (
 create index if not exists cotizaciones_created_at_idx on public.cotizaciones (created_at desc);
 
 alter table public.cotizaciones enable row level security;
+
+-- IVA opcional por cotización (2026-11-12). Las existentes quedan sin IVA.
+alter table public.cotizaciones add column if not exists con_iva boolean not null default false;
 
 notify pgrst, 'reload schema';

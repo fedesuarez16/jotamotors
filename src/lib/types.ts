@@ -165,6 +165,7 @@ export interface CotizacionInput {
   items: CotizacionItem[];
   validez_dias?: number;
   observaciones?: string | null;
+  con_iva?: boolean;
 }
 
 export type CotizacionEstado = "borrador" | "enviada" | "error";
@@ -174,6 +175,7 @@ export interface Cotizacion extends CotizacionInput {
   numero: number;
   total: number;
   validez_dias: number;
+  con_iva: boolean;
   estado: CotizacionEstado;
   enviada_at: string | null;
   error: string | null;

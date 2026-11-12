@@ -284,6 +284,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
   const [items, setItems] = useState<ItemRow[]>(() => itemsIniciales(inicial));
   const [validez, setValidez] = useState(inicial?.validez_dias ?? 15);
   const [observaciones, setObservaciones] = useState(inicial?.observaciones ?? "");
+  const [conIva, setConIva] = useState(inicial?.con_iva ?? false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const lastDescRef = useRef<HTMLInputElement>(null);
   const focusLast = useRef(false);
@@ -301,7 +302,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
     precio_unitario: Number(it.precio || 0),
   }));
   const itemsValidos = parsedItems.filter((it) => it.descripcion.trim());
-  const { neto, iva, total } = desgloseIva(calcularTotal(itemsValidos));
+  const { neto, iva, total } = desgloseIva(calcularTotal(itemsValidos), conIva);
 
   const checks = [
     { ok: nombre.trim() !== "", label: "Nombre del cliente" },
@@ -337,6 +338,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
     setItems([emptyItem()]);
     setValidez(15);
     setObservaciones("");
+    setConIva(false);
   }
 
   function submit(enviar: boolean) {
@@ -354,6 +356,7 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
           items: parsedItems,
           validez_dias: validez,
           observaciones,
+          con_iva: conIva,
         },
         enviar,
         borrador?.id
@@ -560,16 +563,27 @@ export function CotizacionForm({ inicial }: { inicial?: Cotizacion | null }) {
         </div>
 
         <div className="mt-6 border-t border-white/10 px-6 py-5">
-          <dl className="mb-4 space-y-1.5 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-zinc-500">Total neto</dt>
-              <dd className="tabular-nums text-zinc-300">{formatCLP(neto)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-zinc-500">IVA (19%)</dt>
-              <dd className="tabular-nums text-zinc-300">{formatCLP(iva)}</dd>
-            </div>
-          </dl>
+          <label className="mb-4 flex cursor-pointer items-center justify-between gap-3 text-sm">
+            <span className="text-zinc-400">Agregar IVA (19%)</span>
+            <input
+              type="checkbox"
+              checked={conIva}
+              onChange={(e) => setConIva(e.target.checked)}
+              className="h-4 w-4 cursor-pointer accent-white"
+            />
+          </label>
+          {conIva && (
+            <dl className="mb-4 space-y-1.5 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-zinc-500">Total neto</dt>
+                <dd className="tabular-nums text-zinc-300">{formatCLP(neto)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-zinc-500">IVA (19%)</dt>
+                <dd className="tabular-nums text-zinc-300">{formatCLP(iva)}</dd>
+              </div>
+            </dl>
+          )}
           <p className="text-xs text-zinc-500">Total</p>
           <p className="mt-0.5 font-display text-4xl font-semibold tracking-tight tabular-nums text-white">{formatCLP(total)}</p>
 
